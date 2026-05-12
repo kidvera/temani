@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Temani Tumbuh — Pendamping Sensorik Anak</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══ RESET & ROOT ═══ */
+:root {
+  --sage: #4a9e7a;
+  --sage-dark: #357a5d;
+  --sage-light: #e8f5ef;
+  --sage-mid: #b8dece;
+  --peach: #f5845a;
+  --peach-light: #fef0eb;
+  --sky: #5aaed4;
+  --sky-light: #eaf5fb;
+  --sun: #f0c040;
+  --sun-light: #fef9e7;
+  --lav: #9b7fd4;
+  --lav-light: #f3effc;
+  --rose: #e87d9a;
+  --rose-light: #fdeef3;
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --border: #ece9e3;
+  --text: #2d2926;
+  --text2: #7a7570;
+  --text3: #b0ada8;
+  --r: 16px;
+  --r-sm: 12px;
+  --r-lg: 24px;
+  --nav-h: 70px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative}
+
+/* ═══ SCREENS ═══ */
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:var(--nav-h)}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* ═══ STATUS BAR ═══ */
+.sbar{padding:12px 20px 4px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--bg)}
+.sbar-time{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text)}
+.sbar-r{font-size:12px;color:var(--text2)}
+
+/* ═══ BOTTOM NAV ═══ */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:none;padding:8px 0 16px;z-index:100}
+.bnav.show{display:flex}
+.bnav-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all .15s}
+.bnav-ic{font-size:20px;line-height:1}
+.bnav-lb{font-family:'Nunito',sans-serif;font-size:10px;font-weight:700;color:var(--text3)}
+.bnav-i.on .bnav-lb{color:var(--sage)}
+
+/* ═══ TYPOGRAPHY ═══ */
+.t-head{font-family:'Nunito',sans-serif;font-weight:900;letter-spacing:-.4px;color:var(--text)}
+.t-sub{font-size:13px;color:var(--text2);line-height:1.55}
+.sec-t{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--text)}
+.sec-lnk{font-size:12px;font-weight:700;color:var(--sage);cursor:pointer}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.label-xs{font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+
+/* ═══ BUTTONS ═══ */
+.btn{width:100%;padding:14px;border:none;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .15s,transform .1s;letter-spacing:-.2px}
+.btn:active{opacity:.88;transform:scale(.98)}
+.btn-primary{background:var(--sage);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
+.btn-peach{background:var(--peach);color:#fff}
+.btn:disabled{opacity:.4;pointer-events:none}
+
+/* ═══ INPUTS ═══ */
+.inp-g{margin-bottom:14px}
+.inp-l{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;font-family:'Nunito',sans-serif}
+.inp{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Nunito Sans',sans-serif;font-size:14px;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--sage)}
+.inp::placeholder{color:var(--text3)}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.card-p{padding:14px 16px}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;font-family:'Nunito',sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* ═══════════════════════════════════
+   SCREEN: LOGIN
+═══════════════════════════════════ */
+#s-login{background:var(--sage)}
+.login-hero{flex:1;padding:36px 24px 24px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.login-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,.07);border-radius:50%}
+.login-hero::after{content:'';position:absolute;bottom:0;left:-40px;width:140px;height:140px;background:rgba(255,255,255,.05);border-radius:50%}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:auto;position:relative;z-index:1}
+.login-logo{width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,.3)}
+.login-brand-n{font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:#fff}
+.login-brand-s{font-size:11px;color:rgba(255,255,255,.7);margin-top:1px}
+.login-copy{position:relative;z-index:1;margin-bottom:8px}
+.login-tagline{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.5px;margin-bottom:8px}
+.login-sub{font-size:14px;color:rgba(255,255,255,.75);line-height:1.55}
+.login-card{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 32px;flex-shrink:0}
+.login-card-t{font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px}
+.login-card-s{font-size:13px;color:var(--text2);margin-bottom:20px}
+.divider{text-align:center;color:var(--text3);font-size:12px;margin:14px 0;position:relative}
+.divider::before{content:'';position:absolute;left:0;top:50%;width:40%;height:1px;background:var(--border)}
+.divider::after{content:'';position:absolute;right:0;top:50%;width:40%;height:1px;background:var(--border)}
+.btn-google{width:100%;padding:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.btn-google:active{background:var(--bg)}
+.login-footer{text-align:center;font-size:12px;color:var(--text2);margin-top:14px}
+.login-footer a{color:var(--sage);font-weight:700;cursor:pointer}
+.err-msg{background:var(--peach-light);color:var(--peach);font-size:12px;padding:8px 12px;border-radius:var(--r-sm);margin-bottom:12px;display:none;font-weight:600;font-family:'Nunito',sans-serif}
+
+/* ═══════════════════════════════════
+   SCREEN: ONBOARDING (nama + usia)
+═══════════════════════════════════ */
+.onb-header{padding:16px 20px 0;flex-shrink:0}
+.onb-steps{display:flex;gap:6px;margin-bottom:24px}
+.step{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.step.done{background:var(--sage)}
+.step.cur{background:var(--sage-mid)}
+.onb-body{padding:0 24px 24px;display:flex;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:100px}
+.onb-body::-webkit-scrollbar{display:none}
+.onb-icon{font-size:40px;margin-bottom:12px}
+.onb-title{font-family:'Nunito',sans-serif;font-size:23px;font-weight:900;color:var(--text);line-height:1.25;margin-bottom:6px;letter-spacing:-.4px}
+.onb-sub{font-size:14px;color:var(--text2);line-height:1.55;margin-bottom:24px}
+.age-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.age-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.age-card:active{transform:scale(.97)}
+.age-card.sel{border-color:var(--sage);background:var(--sage-light)}
+.age-em{font-size:28px;margin-bottom:6px}
+.age-rng{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
+.age-card.sel .age-rng{color:var(--sage-dark)}
+.age-d{font-size:11px;color:var(--text2)}
+.onb-footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:12px 24px 28px;background:var(--bg);border-top:1px solid var(--border)}
+
+/* ═══════════════════════════════════
+   SCREEN: OBSERVASI
+═══════════════════════════════════ */
+.obs-hdr{padding:12px 20px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.obs-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.obs-back-btn{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2);padding:0}
+.obs-title{font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text2)}
+.obs-skip{font-size:12px;color:var(--text3);cursor:pointer}
+.obs-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.obs-prog-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.obs-prog-fill{height:6px;border-radius:3px;background:var(--sage);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.obs-prog-txt{font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap}
+.pusat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700}
+.b-taktil{background:var(--peach-light);color:var(--peach)}
+.b-vestibular{background:var(--sky-light);color:var(--sky)}
+.b-proprioseptif{background:var(--lav-light);color:var(--lav)}
+.b-auditori{background:var(--sun-light);color:#b8860a}
+.b-visual{background:var(--rose-light);color:var(--rose)}
+.b-interoeptif{background:var(--sage-light);color:var(--sage-dark)}
+.obs-body{flex:1;padding:20px;overflow-y:auto;padding-bottom:90px}
+.obs-body::-webkit-scrollbar{display:none}
+.q-num{font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.q-text{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:8px;letter-spacing:-.3px}
+.q-ctx{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:22px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid var(--sage-mid)}
+.obs-opts{display:flex;flex-direction:column;gap:9px}
+.obs-opt{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s}
+.obs-opt:active{transform:scale(.98)}
+.obs-opt.sel{border-color:var(--sage);background:var(--sage-light)}
+.opt-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.obs-opt.sel .opt-radio{border-color:var(--sage);background:var(--sage)}
+.opt-radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s}
+.obs-opt.sel .opt-radio-dot{opacity:1}
+.opt-txt{font-size:13px;color:var(--text);line-height:1.45;font-weight:500}
+.obs-opt.sel .opt-txt{color:var(--sage-dark);font-weight:600}
+.obs-footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:12px 20px 28px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:10px}
+.obs-btn-back{width:48px;height:48px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:transparent;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.obs-btn-next{flex:1;padding:13px;background:var(--sage);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
+
+/* ═══════════════════════════════════
+   SCREEN: HASIL
+═══════════════════════════════════ */
+.hasil-hdr{padding:20px 20px 16px;background:linear-gradient(160deg,#e8f5ef 0%,var(--bg) 100%);flex-shrink:0}
+.hasil-back{font-size:13px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;margin-bottom:14px}
+.hasil-title{font-family:'Nunito',sans-serif;font-size:21px;font-weight:900;color:var(--text);line-height:1.3;letter-spacing:-.4px}
+.hasil-title .hn{color:var(--sage)}
+.hasil-date{font-size:12px;color:var(--text3);margin-top:4px}
+.hasil-body{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+
+/* Skor card */
+.skor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.skor-title{font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
+.skor-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.skor-row:last-child{margin-bottom:0}
+.skor-lbl{font-size:12px;font-weight:600;color:var(--text);width:90px;flex-shrink:0;font-family:'Nunito',sans-serif}
+.skor-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.skor-fill{height:8px;border-radius:4px}
+.f-high{background:var(--sage)}
+.f-mid{background:var(--sun)}
+.f-low{background:var(--peach)}
+.skor-pct{font-size:11px;font-weight:800;width:30px;text-align:right;font-family:'Nunito',sans-serif}
+.p-high{color:var(--sage)}.p-mid{color:#c4960a}.p-low{color:var(--peach)}
+
+/* Insight free */
+.ins-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;gap:12px}
+.ins-ico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ins-body .ins-n{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
+.ins-status{font-size:11px;font-weight:700;margin-bottom:4px}
+.s-ok{color:var(--sage)}.s-mid{color:#c4960a}.s-alert{color:var(--peach)}
+.ins-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* Kekuatan */
+.kek-card{background:var(--sun-light);border:1px solid #f0d860;border-radius:var(--r);padding:14px}
+.kek-t{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px}
+.kek-i{display:flex;gap:8px;margin-bottom:5px;font-size:12px;color:var(--text);line-height:1.4;align-items:flex-start}
+.kek-i:last-child{margin-bottom:0}
+
+/* Locked blur */
+.locked{filter:blur(4px);pointer-events:none;user-select:none;opacity:.7}
+
+/* Paywall */
+.paywall{background:var(--surface);border:2px dashed var(--sage-mid);border-radius:var(--r-lg);padding:22px 20px;text-align:center}
+.pw-em{font-size:32px;margin-bottom:10px}
+.pw-t{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:var(--text);margin-bottom:5px;letter-spacing:-.3px}
+.pw-s{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px}
+.pw-feats{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;text-align:left}
+.pw-feat{font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+.pw-feat::before{content:'✓';color:var(--sage);font-weight:700}
+.pw-note{font-size:11px;color:var(--text3);margin-top:8px}
+
+/* ═══════════════════════════════════
+   SCREEN: BERANDA
+═══════════════════════════════════ */
+.brnda-hdr{padding:16px 20px 12px;background:var(--surface);flex-shrink:0}
+.brnda-gr{font-family:'Nunito',sans-serif;font-size:19px;font-weight:900;color:var(--text);letter-spacing:-.4px}
+.brnda-gr .hi{color:var(--sage)}
+.brnda-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.chips-row{display:flex;gap:8px;padding:10px 20px;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;border-radius:20px;cursor:pointer;white-space:nowrap;border:1.5px solid transparent;background:var(--bg);transition:all .2s}
+.chip.on{border-color:var(--sage);background:var(--sage-light)}
+.chip-av{width:26px;height:26px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif}
+.chip-nm{font-size:12px;font-weight:600;color:var(--text);font-family:'Nunito',sans-serif}
+.brnda-scroll{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+
+/* Hero card */
+.hero-card{background:linear-gradient(135deg,#357a5d 0%,#5ab88a 100%);border-radius:var(--r-lg);padding:18px;color:#fff;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
+.hc-lbl{font-size:11px;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.05em;font-family:'Nunito',sans-serif;margin-bottom:4px}
+.hc-t{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;margin-bottom:12px;line-height:1.35}
+.hc-chips{display:flex;gap:6px;flex-wrap:wrap}
+.hc-chip{background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif}
+.hc-chip.al{background:rgba(245,132,90,.35)}
+
+/* Insight scroll row */
+.ins-row{display:flex;gap:9px;overflow-x:auto;padding-bottom:2px}
+.ins-row::-webkit-scrollbar{display:none}
+.ins-mini{flex-shrink:0;width:118px;background:var(--surface);border-radius:var(--r);padding:12px 11px;border:1px solid var(--border);cursor:pointer}
+.im-ic{font-size:20px;margin-bottom:6px}
+.im-n{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:var(--text);margin-bottom:2px}
+.im-d{font-size:11px;color:var(--text2);line-height:1.35}
+.im-dot{width:5px;height:5px;border-radius:50%;margin-top:7px}
+.d-ok{background:var(--sage)}.d-warn{background:var(--peach)}.d-mid{background:var(--sun)}
+
+/* Activity list */
+.act-list{display:flex;flex-direction:column;gap:8px}
+.act-row{display:flex;align-items:center;gap:11px;background:var(--surface);border-radius:var(--r);padding:12px 13px;border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.act-row:active{background:var(--sage-light)}
+.act-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ic-g{background:var(--sage-light)}.ic-p{background:var(--peach-light)}.ic-s{background:var(--sky-light)}
+.act-n{font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.act-m{font-size:11px;color:var(--text2);margin-top:1px}
+.act-lock{font-size:14px;color:var(--text3)}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .2s;flex-shrink:0}
+.chk.done{background:var(--sage);border-color:var(--sage);color:#fff}
+
+/* Sukses */
+.sukses{background:var(--sun-light);border-radius:var(--r);border:1px solid #f0d860;padding:13px}
+.suk-t{font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:9px}
+.suk-i{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer}
+.suk-b{width:18px;height:18px;border-radius:5px;border:2px solid #d4b832;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;transition:all .2s}
+.suk-b.on{background:var(--sun);border-color:var(--sun);color:var(--text)}
+.suk-tx{font-size:12px;color:var(--text)}
+.suk-tx.done{text-decoration:line-through;color:var(--text3)}
+
+/* ═══════════════════════════════════
+   SCREEN: AKTIVITAS (PREMIUM)
+═══════════════════════════════════ */
+.akt-hdr{padding:16px 20px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.akt-t{font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
+.akt-s{font-size:13px;color:var(--text2);margin-top:2px}
+.filter-row{display:flex;gap:8px;padding:10px 20px;overflow-x:auto;flex-shrink:0}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-btn{padding:6px 14px;border-radius:20px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.filter-btn.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.akt-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.akt-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .15s}
+.akt-card:active{transform:scale(.99)}
+.akt-top{padding:14px;display:flex;align-items:center;gap:12px}
+.akt-ico-big{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.akt-name{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px}
+.akt-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;font-family:'Nunito',sans-serif}
+.tag-sage{background:var(--sage-light);color:var(--sage-dark)}
+.tag-peach{background:var(--peach-light);color:var(--peach)}
+.tag-sky{background:var(--sky-light);color:var(--sky)}
+.tag-lav{background:var(--lav-light);color:var(--lav)}
+.akt-desc{padding:0 14px 14px;font-size:12px;color:var(--text2);line-height:1.55;border-top:1px solid var(--border);padding-top:10px}
+.premium-gate{background:linear-gradient(135deg,#357a5d,#4a9e7a);border-radius:var(--r-lg);padding:24px 20px;text-align:center;color:#fff;margin:0 0 16px}
+.pg-em{font-size:36px;margin-bottom:10px}
+.pg-t{font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;margin-bottom:6px;letter-spacing:-.3px}
+.pg-s{font-size:13px;opacity:.8;line-height:1.55;margin-bottom:16px}
+.pg-price{font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;margin-bottom:4px}
+.pg-per{font-size:12px;opacity:.7;margin-bottom:16px}
+.btn-white{padding:13px 24px;background:#fff;color:var(--sage-dark);border:none;border-radius:var(--r-sm);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;width:100%;transition:opacity .15s}
+.btn-white:active{opacity:.88}
+
+/* ═══════════════════════════════════
+   SCREEN: PROFIL
+═══════════════════════════════════ */
+.profil-hero{background:linear-gradient(135deg,var(--sage) 0%,#357a5d 100%);padding:32px 20px 24px;text-align:center;color:#fff;flex-shrink:0}
+.profil-av{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px;border:3px solid rgba(255,255,255,.35)}
+.profil-nm{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800}
+.profil-em{font-size:13px;opacity:.75;margin-top:2px}
+.plan-chip{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif}
+.plan-free{background:rgba(255,255,255,.2)}
+.plan-pro{background:var(--sun);color:var(--text)}
+.profil-body{padding:16px 20px;display:flex;flex-direction:column;gap:8px}
+.p-row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r);padding:14px;border:1px solid var(--border);cursor:pointer;transition:background .15s}
+.p-row:active{background:var(--sage-light)}
+.p-ic{font-size:18px;width:30px;text-align:center}
+.p-lbl{font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text);flex:1}
+.p-arr{color:var(--text3);font-size:14px}
+.p-row.danger .p-lbl{color:var(--peach)}
+
+/* Utils */
+.sp{height:12px;flex-shrink:0}
+.sp8{height:8px;flex-shrink:0}
+.loading-spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--sage);border-radius:50%;animation:spin .8s linear infinite;margin:32px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN: LOGIN
+══════════════════════════════════════ -->
+<div class="screen active" id="s-login">
+  <div class="login-hero">
+    <div class="login-brand">
+      <div class="login-logo">🌱</div>
+      <div>
+        <div class="login-brand-n">Temani Tumbuh</div>
+        <div class="login-brand-s">Pendamping sensorik anak</div>
+      </div>
+    </div>
+    <div class="login-copy">
+      <div class="login-tagline">Pahami si kecil,<br>dampingi sepenuh hati</div>
+      <div class="login-sub">Observasi sensorik personal untuk anak usia 6 bulan – 7 tahun</div>
+    </div>
+  </div>
+  <div class="login-card">
+    <div class="login-card-t">Masuk ke akun kamu</div>
+    <div class="login-card-s">Belum punya akun? Daftar gratis</div>
+    <div class="err-msg" id="login-err"></div>
+    <div class="inp-g">
+      <label class="inp-l">Email</label>
+      <input class="inp" id="login-email" type="email" placeholder="bunda@email.com" autocomplete="email">
+    </div>
+    <div class="inp-g">
+      <label class="inp-l">Kata sandi</label>
+      <input class="inp" id="login-pass" type="password" placeholder="Min. 6 karakter" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Masuk →</button>
+    <div class="divider">atau</div>
+    <button class="btn-google" onclick="doGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.17z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.3z"/></svg>
+      Lanjut dengan Google
+    </button>
+    <div class="login-footer">Belum punya akun? <a onclick="doRegister()">Daftar gratis</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: ONBOARDING
+══════════════════════════════════════ -->
+<div class="screen" id="s-onboard">
+  <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="onb-header">
+    <div class="onb-steps">
+      <div class="step done"></div>
+      <div class="step cur"></div>
+      <div class="step"></div>
+    </div>
+  </div>
+  <div class="onb-body">
+    <div class="onb-icon">👶</div>
+    <div class="onb-title">Siapa yang akan kita amati?</div>
+    <div class="onb-sub">Masukkan nama anak dan pilih rentang usianya untuk observasi yang tepat</div>
+    <div class="inp-g">
+      <label class="inp-l">Nama anak</label>
+      <input class="inp" id="child-name" type="text" placeholder="Contoh: Aisyah" autocomplete="off">
+    </div>
+    <div class="label-xs" style="margin-bottom:10px">Pilih usia anak</div>
+    <div class="age-grid" id="age-grid">
+      <div class="age-card" onclick="selectAge(this,'6-12 bulan')">
+        <div class="age-em">🍼</div>
+        <div class="age-rng">6–12 bulan</div>
+        <div class="age-d">Bayi eksplorasi</div>
+      </div>
+      <div class="age-card" onclick="selectAge(this,'1-2 tahun')">
+        <div class="age-em">🧸</div>
+        <div class="age-rng">1–2 tahun</div>
+        <div class="age-d">Mulai berjalan</div>
+      </div>
+      <div class="age-card" onclick="selectAge(this,'2-3 tahun')">
+        <div class="age-em">🎨</div>
+        <div class="age-rng">2–3 tahun</div>
+        <div class="age-d">Eksplorasi aktif</div>
+      </div>
+      <div class="age-card" onclick="selectAge(this,'3-4 tahun')">
+        <div class="age-em">🌟</div>
+        <div class="age-rng">3–4 tahun</div>
+        <div class="age-d">Sosial berkembang</div>
+      </div>
+      <div class="age-card" onclick="selectAge(this,'4-5 tahun')">
+        <div class="age-em">🦋</div>
+        <div class="age-rng">4–5 tahun</div>
+        <div class="age-d">Siap belajar</div>
+      </div>
+      <div class="age-card" onclick="selectAge(this,'5-7 tahun')">
+        <div class="age-em">🚀</div>
+        <div class="age-rng">5–7 tahun</div>
+        <div class="age-d">Persiapan SD</div>
+      </div>
+    </div>
+  </div>
+  <div class="onb-footer">
+    <button class="btn btn-primary" id="onb-next" disabled onclick="startObservasi()">Mulai observasi →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: OBSERVASI
+══════════════════════════════════════ -->
+<div class="screen" id="s-obs">
+  <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="obs-hdr">
+    <div class="obs-top">
+      <button class="obs-back-btn" onclick="obsBack()">←</button>
+      <span class="obs-title" id="obs-child-label">Observasi</span>
+      <span class="obs-skip" onclick="goScreen('s-beranda')">Simpan nanti</span>
+    </div>
+    <div class="obs-prog-row">
+      <div class="obs-prog-bar"><div class="obs-prog-fill" id="obs-fill" style="width:3%"></div></div>
+      <span class="obs-prog-txt" id="obs-ctr">1 / 30</span>
+    </div>
+    <span class="pusat-badge b-taktil" id="obs-badge">🖐️ Sistem Taktil</span>
+  </div>
+  <div class="obs-body">
+    <div class="q-num" id="q-num">Pertanyaan 1 dari 30</div>
+    <div class="q-text" id="q-text">—</div>
+    <div class="q-ctx" id="q-ctx">—</div>
+    <div class="obs-opts" id="obs-opts"></div>
+  </div>
+  <div class="obs-footer">
+    <button class="obs-btn-back" onclick="obsBack()">←</button>
+    <button class="obs-btn-next btn btn-primary" id="obs-next" disabled onclick="obsNext()">Lanjut →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: HASIL
+══════════════════════════════════════ -->
+<div class="screen" id="s-hasil">
+  <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="hasil-hdr">
+    <div class="hasil-back" onclick="goScreen('s-beranda')">← Beranda</div>
+    <div class="hasil-title">Profil sensorik <span class="hn" id="hasil-name">—</span> 🌱</div>
+    <div class="hasil-date" id="hasil-date">—</div>
+  </div>
+  <div class="scroll-area">
+    <div class="hasil-body" id="hasil-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: BERANDA
+══════════════════════════════════════ -->
+<div class="screen" id="s-beranda">
+  <div class="sbar"><span class="sbar-time" id="beranda-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="brnda-hdr">
+    <div class="brnda-gr">Halo, <span class="hi" id="beranda-name">Bunda</span> 👋</div>
+    <div class="brnda-sub" id="beranda-sub">Selamat datang di Temani Tumbuh</div>
+  </div>
+  <div class="chips-row" id="chips-row"></div>
+  <div class="scroll-area">
+    <div class="brnda-scroll" id="beranda-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: AKTIVITAS
+══════════════════════════════════════ -->
+<div class="screen" id="s-aktivitas">
+  <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="akt-hdr">
+    <div class="akt-t">Aktivitas Stimulasi</div>
+    <div class="akt-s" id="akt-sub">Panduan kegiatan harian untuk anak</div>
+  </div>
+  <div class="filter-row" id="filter-row">
+    <button class="filter-btn on" onclick="filterAkt(this,'semua')">Semua</button>
+    <button class="filter-btn" onclick="filterAkt(this,'taktil')">🖐️ Taktil</button>
+    <button class="filter-btn" onclick="filterAkt(this,'vestibular')">🌀 Vestibular</button>
+    <button class="filter-btn" onclick="filterAkt(this,'proprioseptif')">💪 Proprioseptif</button>
+    <button class="filter-btn" onclick="filterAkt(this,'auditori')">👂 Auditori</button>
+    <button class="filter-btn" onclick="filterAkt(this,'visual')">👁️ Visual</button>
+  </div>
+  <div class="scroll-area">
+    <div class="akt-body" id="akt-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: PROFIL
+══════════════════════════════════════ -->
+<div class="screen" id="s-profil">
+  <div class="sbar"><span class="sbar-time">9:41</span><span class="sbar-r">●●● 🔋</span></div>
+  <div class="profil-hero">
+    <div class="profil-av">👩</div>
+    <div class="profil-nm" id="profil-name">—</div>
+    <div class="profil-em" id="profil-email">—</div>
+    <div class="plan-chip plan-free" id="profil-plan">Paket Gratis</div>
+  </div>
+  <div class="scroll-area">
+    <div class="profil-body">
+      <div class="p-row" onclick="goScreen('s-beranda')">
+        <span class="p-ic">👧</span>
+        <span class="p-lbl">Data anak saya</span>
+        <span class="p-arr">›</span>
+      </div>
+      <div class="p-row" onclick="goScreen('s-hasil')">
+        <span class="p-ic">📋</span>
+        <span class="p-lbl">Riwayat observasi</span>
+        <span class="p-arr">›</span>
+      </div>
+      <div class="p-row" onclick="openLynk()">
+        <span class="p-ic">⭐</span>
+        <span class="p-lbl">Upgrade ke Premium</span>
+        <span class="p-arr">›</span>
+      </div>
+      <div class="p-row">
+        <span class="p-ic">🔔</span>
+        <span class="p-lbl">Pengingat harian</span>
+        <span class="p-arr">›</span>
+      </div>
+      <div class="p-row">
+        <span class="p-ic">❓</span>
+        <span class="p-lbl">Bantuan & FAQ</span>
+        <span class="p-arr">›</span>
+      </div>
+      <div class="p-row danger" onclick="doLogout()">
+        <span class="p-ic">🚪</span>
+        <span class="p-lbl">Keluar</span>
+        <span class="p-arr">›</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bnav" id="bnav">
+  <div class="bnav-i" onclick="navTo('beranda')">
+    <span class="bnav-ic">🏠</span><span class="bnav-lb">Beranda</span>
+  </div>
+  <div class="bnav-i" onclick="navTo('aktivitas')">
+    <span class="bnav-ic">🎯</span><span class="bnav-lb">Aktivitas</span>
+  </div>
+  <div class="bnav-i" onclick="navTo('hasil')">
+    <span class="bnav-ic">📊</span><span class="bnav-lb">Perkembangan</span>
+  </div>
+  <div class="bnav-i" onclick="navTo('profil')">
+    <span class="bnav-ic">👤</span><span class="bnav-lb">Profil</span>
+  </div>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG — GANTI DENGAN NILAI KAMU
+// ═══════════════════════════════════════════
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const LYNK_URL = 'https://lynk.id/YOUR_LINK'; // ganti dengan link Lynk.id kamu
+
+// ═══════════════════════════════════════════
+// SUPABASE INIT
+// ═══════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentUser = null;
+let currentChild = null;
+let selectedAge = null;
+let answers = [];
+let currentQ = 0;
+let scores = {};
+let isPremium = false;
+
+// ═══════════════════════════════════════════
+// SOAL — 30 pertanyaan, 5 per pusat
+// ═══════════════════════════════════════════
+const PUSAT = [
+  { id:'taktil',        label:'Sistem Taktil',        icon:'🖐️', cls:'b-taktil',        color:'var(--peach-light)',  txt:'var(--peach)' },
+  { id:'vestibular',    label:'Sistem Vestibular',    icon:'🌀', cls:'b-vestibular',    color:'var(--sky-light)',    txt:'var(--sky)' },
+  { id:'proprioseptif', label:'Proprioseptif',        icon:'💪', cls:'b-proprioseptif', color:'var(--lav-light)',    txt:'var(--lav)' },
+  { id:'auditori',      label:'Sistem Auditori',      icon:'👂', cls:'b-auditori',      color:'var(--sun-light)',    txt:'#b8860a' },
+  { id:'visual',        label:'Sistem Visual',        icon:'👁️', cls:'b-visual',        color:'var(--rose-light)',   txt:'var(--rose)' },
+  { id:'interoeptif',   label:'Interoeptif',          icon:'❤️', cls:'b-interoeptif',   color:'var(--sage-light)',   txt:'var(--sage-dark)' },
+];
+
+// Skor jawaban: posisi 0 = paling normal (4 poin), posisi 3 = paling bermasalah (1 poin)
+const SOAL = [
+  // TAKTIL (0-4)
+  { pusat:0, q:'Apakah anak nyaman saat dipeluk atau disentuh orang yang dikenal?', ctx:'💡 Perhatikan reaksi saat memeluk, mengelus rambut, atau saat bermain fisik bersama', opts:['Ya, anak menikmati dan aktif meminta pelukan','Kadang mau kadang tidak, tergantung suasana hati','Lebih sering menghindari atau tampak tidak nyaman','Selalu menolak, kaku, atau langsung menjauh saat disentuh'] },
+  { pusat:0, q:'Bagaimana reaksi anak terhadap tekstur pakaian tertentu?', ctx:'💡 Contoh: label baju, kain kasar, baju ketat, kaus kaki yang tidak pas', opts:['Tidak pernah mengeluh, nyaman dengan semua jenis pakaian','Sesekali mengeluh tapi tetap mau memakainya','Sering protes dan butuh waktu lama untuk pakai baju','Sangat sensitif, sering menolak banyak jenis pakaian'] },
+  { pusat:0, q:'Bagaimana reaksi anak saat tangannya terkena sesuatu yang kotor?', ctx:'💡 Misalnya cat, lumpur, makanan lengket, atau pasir basah', opts:['Santai saja, langsung lanjut bermain','Kadang tidak nyaman tapi masih bisa bermain','Sering mengeluh dan langsung ingin membersihkan','Menolak sama sekali, menangis atau marah'] },
+  { pusat:0, q:'Apakah anak mencari kontak fisik secara berlebihan?', ctx:'💡 Contoh: sering memeluk sangat kuat, menempel terus, mendorong orang lain', opts:['Seimbang, memeluk sewajarnya','Kadang mencari tambahan tapi masih wajar','Sering memeluk kuat atau menempel berlebihan','Selalu mencari kontak fisik intens bahkan saat tidak tepat'] },
+  { pusat:0, q:'Bagaimana reaksi anak terhadap sentuhan ringan tak terduga?', ctx:'💡 Contoh: angin sepoi, rambut menyentuh kulit, atau disentuh dari belakang', opts:['Tidak terganggu, tetap beraktivitas normal','Sesekali kaget tapi cepat kembali tenang','Sering bereaksi berlebihan seperti teriak atau kaget','Sangat terganggu dan sulit menenangkan diri'] },
+  // VESTIBULAR (5-9)
+  { pusat:1, q:'Bagaimana anak bereaksi saat diayun atau berputar?', ctx:'💡 Perhatikan saat naik ayunan, digendong berputar, atau bermain merry-go-round', opts:['Menikmati dan minta lagi setelah selesai','Netral, tidak terlalu suka maupun menghindari','Kadang takut atau enggan mencoba','Selalu menolak atau menangis saat diayun/diputar'] },
+  { pusat:1, q:'Apakah anak sering mencari stimulasi gerak berlebihan?', ctx:'💡 Contoh: lompat terus-menerus, berputar sendiri, jungkir balik, tidak bisa diam', opts:['Bergerak sesuai kebutuhan, tidak berlebihan','Kadang aktif berlebih tapi masih terkontrol','Sering mencari gerak intens dan sulit dihentikan','Hampir tidak bisa berhenti bergerak sepanjang hari'] },
+  { pusat:1, q:'Bagaimana keseimbangan anak saat berdiri satu kaki atau berjalan di permukaan tidak rata?', ctx:'💡 Perhatikan saat berjalan di batu, naik tangga, atau bermain di taman bermain', opts:['Seimbang dengan baik, jarang jatuh','Kadang goyah tapi bisa menyesuaikan','Sering kehilangan keseimbangan atau menghindari tantangan','Selalu kesulitan, sangat mudah jatuh'] },
+  { pusat:1, q:'Bagaimana reaksi anak saat posisi kepalanya berubah tiba-tiba?', ctx:'💡 Contoh: tiba-tiba dibalik posisinya, membungkuk cepat, atau head rush', opts:['Tidak masalah, langsung beradaptasi','Kadang terasa pusing tapi cepat pulih','Sering mengeluh pusing atau mual','Selalu terganggu, sangat sensitif terhadap perubahan posisi'] },
+  { pusat:1, q:'Apakah anak menikmati aktivitas seperti perosotan, trampolin, atau bermain di taman?', ctx:'💡 Perhatikan antusias atau penolakan saat diajak ke playground', opts:['Sangat antusias dan bersemangat','Mau mencoba tapi tidak terlalu bersemangat','Perlu banyak dorongan untuk mencoba','Selalu menolak atau takut bermain di peralatan taman'] },
+  // PROPRIOSEPTIF (10-14)
+  { pusat:2, q:'Apakah anak sering tampak tidak menyadari kekuatan yang dikeluarkan?', ctx:'💡 Contoh: menulis terlalu keras, memegang barang sampai patah, atau memeluk terlalu kuat', opts:['Mengontrol kekuatan dengan baik sesuai situasi','Kadang terlalu keras tapi tidak disengaja','Sering tidak bisa mengontrol kekuatan yang dikeluarkan','Hampir selalu kesulitan mengatur kekuatan'] },
+  { pusat:2, q:'Bagaimana koordinasi gerakan anak secara keseluruhan?', ctx:'💡 Perhatikan saat berlari, menangkap bola, atau menaiki tangga', opts:['Koordinasi baik, gerakan terlihat terkoordinasi','Kadang canggung tapi masih bisa melakukan','Sering terlihat kurang koordinasi atau kaku','Sangat kesulitan dengan gerakan yang membutuhkan koordinasi'] },
+  { pusat:2, q:'Apakah anak suka aktivitas yang memberikan tekanan pada tubuh?', ctx:'💡 Contoh: bermain lompat, mendorong benda berat, bergelantungan, atau bergulat', opts:['Menyukai dan mencari aktivitas seperti ini secara wajar','Kadang suka, kadang tidak','Jarang tertarik pada aktivitas tekanan tubuh','Selalu menghindari aktivitas yang melibatkan tekanan fisik'] },
+  { pusat:2, q:'Bagaimana postur tubuh anak saat duduk atau berdiri dalam waktu lama?', ctx:'💡 Perhatikan saat duduk di meja, menonton TV, atau menunggu', opts:['Postur tegak dan sadar posisi tubuhnya','Kadang membungkuk tapi bisa diingatkan','Sering terlihat lemas atau tidak sadar posisi tubuh','Selalu kesulitan mempertahankan postur bahkan dalam waktu singkat'] },
+  { pusat:2, q:'Apakah anak menyadari posisi anggota tubuhnya tanpa harus melihat?', ctx:'💡 Contoh: bisa memakai sepatu tanpa melihat, tahu posisi tangan saat di belakang punggung', opts:['Sangat sadar, bisa melakukan banyak hal tanpa melihat tubuhnya','Cukup sadar untuk aktivitas sehari-hari','Kadang bingung posisi tubuhnya sendiri','Sering salah atau perlu selalu melihat anggota tubuhnya'] },
+  // AUDITORI (15-19)
+  { pusat:3, q:'Bagaimana reaksi anak terhadap suara keras yang tiba-tiba?', ctx:'💡 Contoh: suara petir, kembang api, blender, atau klakson', opts:['Kaget sebentar lalu langsung beradaptasi','Sedikit terkejut tapi cepat tenang kembali','Sering panik atau sangat terganggu','Sangat takut, menangis atau menutup telinga lama'] },
+  { pusat:3, q:'Apakah anak mudah mengikuti instruksi lisan?', ctx:'💡 Perhatikan saat diberi perintah seperti "ambil buku merah di atas meja"', opts:['Memahami dan langsung merespons dengan baik','Perlu diulang 1-2 kali tapi akhirnya mengerti','Sering perlu diulang berkali-kali atau minta contoh','Hampir selalu kesulitan mengikuti instruksi lisan'] },
+  { pusat:3, q:'Bagaimana konsentrasi anak saat ada suara latar belakang?', ctx:'💡 Contoh: bermain saat TV menyala, belajar saat ada keributan di luar', opts:['Bisa tetap fokus meski ada suara latar','Sedikit terganggu tapi masih bisa konsentrasi','Sering kehilangan fokus karena suara sekitar','Tidak bisa berkonsentrasi sama sekali jika ada kebisingan'] },
+  { pusat:3, q:'Apakah anak menikmati musik, lagu, atau menyanyi?', ctx:'💡 Perhatikan reaksi saat mendengar musik, lagu favorit, atau diajak bernyanyi bersama', opts:['Sangat menikmati, aktif ikut bernyanyi atau menari','Menikmati secara biasa, tidak berlebihan','Kurang tertarik atau mudah bosan dengan musik','Menghindari atau terganggu dengan suara musik'] },
+  { pusat:3, q:'Apakah anak mudah mengenali dan membedakan suara-suara?', ctx:'💡 Contoh: mengenali suara anggota keluarga dari jauh, membedakan suara binatang', opts:['Sangat peka, mudah mengenali banyak suara','Cukup baik dalam mengenali suara umum','Kadang kesulitan membedakan suara yang mirip','Sering kesulitan mengenali bahkan suara yang familiar'] },
+  // VISUAL (20-24)
+  { pusat:4, q:'Bagaimana reaksi anak terhadap cahaya terang atau silau?', ctx:'💡 Contoh: keluar di siang hari terik, lampu ruangan yang sangat terang, atau kilat', opts:['Tidak terganggu, beradaptasi dengan baik','Sesekali memicingkan mata tapi tetap beraktivitas','Sering mengeluh silau atau menghindari cahaya terang','Sangat sensitif, sering menangis atau tidak bisa membuka mata'] },
+  { pusat:4, q:'Apakah anak mudah terdistraksi oleh gerakan atau benda visual?', ctx:'💡 Contoh: tidak bisa fokus karena ada orang lalu-lalang, atau teralih oleh layar TV', opts:['Bisa fokus meski ada distraksi visual','Kadang teralih tapi bisa kembali fokus','Sering kehilangan fokus karena stimulus visual','Hampir tidak bisa fokus jika ada gerakan di sekitarnya'] },
+  { pusat:4, q:'Bagaimana kemampuan anak mengikuti sesuatu dengan matanya?', ctx:'💡 Perhatikan saat mengikuti bola yang dilempar, atau membaca tulisan', opts:['Tracking sangat baik, mata mengikuti dengan lancar','Cukup baik untuk aktivitas sehari-hari','Kadang kesulitan mengikuti objek bergerak','Sering kehilangan jejak atau tidak bisa mengikuti dengan mata'] },
+  { pusat:4, q:'Apakah anak kesulitan membedakan kiri dan kanan, atau posisi benda?', ctx:'💡 Contoh: sering salah kiri-kanan, kesulitan memahami "di atas/bawah/depan/belakang"', opts:['Paham dengan baik konsep arah dan posisi','Kadang tertukar tapi bisa dikoreksi','Sering bingung dengan konsep arah dan posisi','Selalu kesulitan bahkan dengan konsep spasial sederhana'] },
+  { pusat:4, q:'Bagaimana kemampuan anak membedakan detail visual?', ctx:'💡 Contoh: menemukan perbedaan dua gambar mirip, puzzle, atau mengenali wajah', opts:['Sangat detail dan teliti secara visual','Cukup baik dalam mengenali detail','Kadang kesulitan melihat perbedaan yang jelas','Sering melewatkan detail yang seharusnya mudah terlihat'] },
+  // INTEROEPTIF (25-29)
+  { pusat:5, q:'Apakah anak bisa mengenali rasa lapar atau kenyang dengan baik?', ctx:'💡 Perhatikan apakah anak bilang lapar sebelum kelaparan, atau tahu kapan berhenti makan', opts:['Selalu tahu kapan lapar dan kapan kenyang','Cukup baik mengenali sinyal lapar-kenyang','Kadang lupa bilang lapar atau makan berlebihan','Sering tidak menyadari lapar sampai sangat lapar atau makan tanpa kontrol'] },
+  { pusat:5, q:'Apakah anak bisa merasakan dan mengungkapkan rasa sakit?', ctx:'💡 Perhatikan apakah anak bilang sakit saat terluka, atau sebaliknya bereaksi berlebihan', opts:['Bisa merasakan dan mengungkapkan rasa sakit dengan proporsional','Cukup baik, sesekali melebih-lebihkan atau meremehkan','Sering tidak menyadari luka kecil atau bereaksi berlebihan','Sangat kesulitan mengenali atau mengungkapkan rasa sakit'] },
+  { pusat:5, q:'Bagaimana anak mengelola rasa lelah atau kebutuhan istirahat?', ctx:'💡 Perhatikan apakah anak tahu kapan tubuhnya lelah dan minta istirahat', opts:['Menyadari kelelahan dan mau istirahat secara mandiri','Perlu diingatkan tapi merespons dengan baik','Sering menolak istirahat meski sudah sangat lelah','Tidak pernah mau istirahat atau sebaliknya sering mengeluh lelah berlebihan'] },
+  { pusat:5, q:'Apakah anak peka terhadap detak jantung atau napasnya sendiri?', ctx:'💡 Perhatikan apakah anak sadar nafasnya sesak saat lelah, atau jantung berdegup kencang', opts:['Peka dan bisa mendeskripsikan sensasi tubuhnya','Cukup sadar terhadap sinyal tubuhnya','Kadang tidak menyadari perubahan fisik yang jelas','Hampir tidak pernah sadar terhadap sensasi dalam tubuhnya'] },
+  { pusat:5, q:'Bagaimana anak merespons kebutuhan ke toilet?', ctx:'💡 Perhatikan apakah anak bisa menahan dan pergi ke toilet tepat waktu', opts:['Menyadari kebutuhan lebih awal dan pergi tepat waktu','Kadang mepet tapi masih terkontrol','Sering baru bilang saat sudah tidak tahan','Sering kecelakaan atau tidak menyadari kebutuhan sampai terlambat'] },
+];
+
+// ═══════════════════════════════════════════
+// AKTIVITAS DATA
+// ═══════════════════════════════════════════
+const AKTIVITAS = [
+  { nama:'Jalan sensorik barefoot', pusat:'taktil', durasi:'10 menit', level:1, ico:'🚶', clr:'ic-g', tags:['tag-sage','Taktil'], desc:'Ajak anak berjalan tanpa alas kaki di berbagai tekstur — rumput, kerikil halus, karpet, atau pasir. Mulai dari tekstur yang lembut dulu, tingkatkan bertahap. Ini stimulasi taktil level 1 yang sangat efektif.' },
+  { nama:'Sensory bin tekstur', pusat:'taktil', durasi:'15 menit', level:1, ico:'📦', clr:'ic-p', tags:['tag-sage','Taktil'], desc:'Isi wadah dengan beras, pasir, atau biji-bijian. Biarkan anak mengaduk dengan tangan. Tambahkan benda kecil yang harus ditemukan. Tingkatkan ke tekstur lebih menantang seperti cat jari.' },
+  { nama:'Pelukan sandwich', pusat:'proprioseptif', durasi:'5 menit', level:1, ico:'🤗', clr:'ic-p', tags:['tag-peach','Proprioseptif'], desc:'Tekan tubuh anak lembut di antara dua bantal. Beri tekanan ringan dari kedua sisi selama 3-5 detik, lalu lepas. Ulangi 5-7 kali. Sangat menenangkan untuk anak sensory seeking.' },
+  { nama:'Tarik tambang', pusat:'vestibular', durasi:'15 menit', level:1, ico:'⚖️', clr:'ic-s', tags:['tag-sky','Vestibular'], desc:'Gunakan handuk atau tali sebagai tambang. Latih keseimbangan dan resistensi tubuh. Lakukan sebelum kegiatan yang butuh fokus. Tingkatkan intensitas bertahap.' },
+  { nama:'Ayunan ritmikal', pusat:'vestibular', durasi:'10 menit', level:1, ico:'🎠', clr:'ic-s', tags:['tag-sky','Vestibular'], desc:'Ayun anak pelan dengan ritme stabil. Mulai lambat, bisa ditingkatkan sesuai toleransi. Hindari gerakan tiba-tiba. Sangat efektif untuk regulasi sistem vestibular.' },
+  { nama:'Heavy work — dorong kursi', pusat:'proprioseptif', durasi:'5 menit', level:2, ico:'🪑', clr:'ic-p', tags:['tag-peach','Proprioseptif'], desc:'Minta anak mendorong kursi kayu melintasi ruangan. Bisa juga mengangkat buku tebal atau tas berisi benda. Lakukan 10 repetisi, 2x sehari untuk input proprioseptif yang dalam.' },
+  { nama:'Drum mainan', pusat:'auditori', durasi:'10 menit', level:1, ico:'🥁', clr:'ic-g', tags:['tag-lav','Auditori'], desc:'Ajak anak bermain drum atau perkusi sederhana. Mulai dengan ritme pelan, tingkatkan tempo bertahap. Sambil bermain, sebut pola ritme dengan kata-kata untuk stimulasi auditori sekaligus bahasa.' },
+  { nama:'Puzzle & maze visual', pusat:'visual', durasi:'15 menit', level:1, ico:'🧩', clr:'ic-s', tags:['tag-sky','Visual'], desc:'Puzzle gambar atau maze sederhana melatih tracking visual dan koordinasi mata-tangan. Pilih tingkat kesulitan yang sesuai. Tingkatkan detail dan ukuran yang lebih kecil secara bertahap.' },
+  { nama:'Napas balon', pusat:'interoeptif', durasi:'5 menit', level:1, ico:'🎈', clr:'ic-g', tags:['tag-sage','Interoeptif'], desc:'Ajarkan anak meniup balon sambil merasakan napasnya. Tanya: "Rasanya gimana di perut saat menarik napas dalam?" Ini melatih kesadaran interoeptif terhadap sensasi dalam tubuh.' },
+  { nama:'Cat jari & finger painting', pusat:'taktil', durasi:'20 menit', level:2, ico:'🎨', clr:'ic-p', tags:['tag-sage','Taktil'], desc:'Mulai dengan kuas, baru pelan-pelan ajak sentuh cat langsung. Jangan paksa. Kenalkan satu tekstur baru per sesi. Setelah nyaman, tambahkan tekstur lain seperti spons atau kertas kasar.' },
+];
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+async function initApp() {
+  // Check if Supabase is configured
+  if (SUPABASE_URL === 'https://YOUR_PROJECT.supabase.co') {
+    // Demo mode — skip auth
+    currentUser = { id: 'demo', email: 'demo@temanitung.app', user_metadata: { full_name: 'Bunda Demo' } };
+    showDemoMode();
+    return;
+  }
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadUserData();
+    showApp();
+  } else {
+    goScreen('s-login');
+  }
+}
+
+function showDemoMode() {
+  showToast('Mode demo aktif — hubungkan Supabase untuk simpan data');
+  goScreen('s-onboard');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { showErr('Isi email dan kata sandi dulu ya'); return; }
+  document.getElementById('login-btn').textContent = 'Memproses...';
+  document.getElementById('login-btn').disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    showErr(error.message === 'Invalid login credentials' ? 'Email atau kata sandi salah' : error.message);
+    document.getElementById('login-btn').textContent = 'Masuk →';
+    document.getElementById('login-btn').disabled = false;
+    return;
+  }
+  currentUser = data.user;
+  await loadUserData();
+  showApp();
+}
+
+async function doRegister() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { showErr('Isi email dan kata sandi dulu ya'); return; }
+  if (pass.length < 6) { showErr('Kata sandi minimal 6 karakter'); return; }
+  document.getElementById('login-btn').textContent = 'Mendaftarkan...';
+  document.getElementById('login-btn').disabled = true;
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  if (error) {
+    showErr(error.message);
+    document.getElementById('login-btn').textContent = 'Masuk →';
+    document.getElementById('login-btn').disabled = false;
+    return;
+  }
+  currentUser = data.user;
+  showApp();
+}
+
+async function doGoogleLogin() {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  currentChild = null;
+  scores = {};
+  document.getElementById('bnav').classList.remove('show');
+  goScreen('s-login');
+}
+
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+async function loadUserData() {
+  if (!currentUser || SUPABASE_URL.includes('YOUR_PROJECT')) return;
+  try {
+    const { data } = await sb.from('children').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
+    if (data && data.length > 0) {
+      currentChild = data[0];
+      const { data: results } = await sb.from('sensory_results').select('*').eq('child_id', currentChild.id).order('created_at', { ascending: false }).limit(1);
+      if (results && results.length > 0) scores = results[0].scores || {};
+    }
+    const { data: profile } = await sb.from('profiles').select('is_premium').eq('id', currentUser.id).single();
+    if (profile) isPremium = profile.is_premium || false;
+  } catch(e) { console.log('Load data error:', e); }
+}
+
+async function saveChild(name, age) {
+  if (SUPABASE_URL.includes('YOUR_PROJECT')) {
+    currentChild = { id: 'demo-child', name, age_range: age };
+    return;
+  }
+  const { data, error } = await sb.from('children').upsert({ user_id: currentUser.id, name, age_range: age }).select().single();
+  if (!error && data) currentChild = data;
+}
+
+async function saveResults(scrs) {
+  if (SUPABASE_URL.includes('YOUR_PROJECT')) { scores = scrs; return; }
+  scores = scrs;
+  await sb.from('sensory_results').insert({ child_id: currentChild.id, user_id: currentUser.id, scores: scrs, created_at: new Date().toISOString() });
+}
+
+// ═══════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════
+function selectAge(el, age) {
+  document.querySelectorAll('.age-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedAge = age;
+  const nameVal = document.getElementById('child-name').value.trim();
+  document.getElementById('onb-next').disabled = !nameVal;
+}
+
+document.getElementById('child-name').addEventListener('input', function() {
+  document.getElementById('onb-next').disabled = !this.value.trim() || !selectedAge;
+});
+
+async function startObservasi() {
+  const name = document.getElementById('child-name').value.trim();
+  if (!name || !selectedAge) return;
+  await saveChild(name, selectedAge);
+  answers = new Array(30).fill(null);
+  currentQ = 0;
+  renderQuestion();
+  document.getElementById('obs-child-label').textContent = 'Observasi ' + name;
+  goScreen('s-obs');
+}
+
+// ═══════════════════════════════════════════
+// OBSERVASI
+// ═══════════════════════════════════════════
+function renderQuestion() {
+  const q = SOAL[currentQ];
+  const p = PUSAT[q.pusat];
+  const total = SOAL.length;
+  const pct = Math.round(((currentQ) / total) * 100);
+
+  document.getElementById('obs-fill').style.width = Math.max(3, pct) + '%';
+  document.getElementById('obs-ctr').textContent = (currentQ + 1) + ' / ' + total;
+  document.getElementById('q-num').textContent = 'Pertanyaan ' + (currentQ + 1) + ' dari ' + total;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-ctx').textContent = q.ctx;
+
+  const badge = document.getElementById('obs-badge');
+  badge.className = 'pusat-badge ' + p.cls;
+  badge.textContent = p.icon + ' ' + p.label;
+
+  const optsEl = document.getElementById('obs-opts');
+  optsEl.innerHTML = q.opts.map((o, i) => `
+    <div class="obs-opt ${answers[currentQ] === i ? 'sel' : ''}" onclick="selectOpt(${i})">
+      <div class="opt-radio"><div class="opt-radio-dot"></div></div>
+      <span class="opt-txt">${o}</span>
+    </div>
+  `).join('');
+
+  const nextBtn = document.getElementById('obs-next');
+  nextBtn.disabled = answers[currentQ] === null;
+  nextBtn.textContent = currentQ === total - 1 ? 'Lihat hasil →' : 'Lanjut →';
+}
+
+function selectOpt(i) {
+  answers[currentQ] = i;
+  document.querySelectorAll('.obs-opt').forEach((el, idx) => el.classList.toggle('sel', idx === i));
+  document.getElementById('obs-next').disabled = false;
+}
+
+function obsBack() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+  else goScreen('s-onboard');
+}
+
+async function obsNext() {
+  if (answers[currentQ] === null) return;
+  if (currentQ < SOAL.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    // Hitung skor
+    const scrs = {};
+    PUSAT.forEach((p, pi) => {
+      const soalPusat = SOAL.filter(s => s.pusat === pi);
+      const vals = soalPusat.map((s, si) => {
+        const globalIdx = SOAL.indexOf(s);
+        const ans = answers[globalIdx] !== null ? answers[globalIdx] : 0;
+        return 4 - ans; // 0=terbaik→4poin, 3=terburuk→1poin
+      });
+      const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+      scrs[p.id] = Math.round(((avg - 1) / 3) * 100);
+    });
+    await saveResults(scrs);
+    renderHasil();
+    goScreen('s-hasil');
+  }
+}
+
+// ═══════════════════════════════════════════
+// HASIL
+// ═══════════════════════════════════════════
+function renderHasil() {
+  const name = currentChild ? currentChild.name : 'Anak';
+  document.getElementById('hasil-name').textContent = name;
+  document.getElementById('hasil-date').textContent = 'Usia ' + (currentChild ? currentChild.age_range : '—') + ' · ' + new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+
+  const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+  const prioritasId = sorted[0] ? sorted[0][0] : 'taktil';
+  const prioritas = PUSAT.find(p => p.id === prioritasId);
+
+  const getClass = v => v >= 70 ? {fill:'f-high',pct:'p-high'} : v >= 45 ? {fill:'f-mid',pct:'p-mid'} : {fill:'f-low',pct:'p-low'};
+  const getStatus = (id, v) => {
+    if (v >= 70) return { cls:'s-ok', txt:'Respons normal — berkembang dengan baik' };
+    if (v >= 45) return { cls:'s-mid', txt: v < 55 ? 'Cenderung hiporesponsif — perlu stimulasi tambahan' : 'Sedikit sensitif — perhatikan kondisi tertentu' };
+    return { cls:'s-alert', txt:'Cenderung hiperresponsif — butuh pendampingan khusus' };
+  };
+
+  const html = `
+    <div class="skor-card">
+      <div class="skor-title">Skor per sistem sensorik</div>
+      ${PUSAT.map(p => {
+        const v = scores[p.id] || 50;
+        const c = getClass(v);
+        return `<div class="skor-row">
+          <span class="skor-lbl">${p.icon} ${p.label.replace('Sistem ','').replace('Proprioseptif','Proprioseptif').substring(0,11)}</span>
+          <div class="skor-track"><div class="skor-fill ${c.fill}" style="width:${v}%"></div></div>
+          <span class="skor-pct ${c.pct}">${v}%</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="label-xs">Prioritas utama · gratis</div>
+    <div class="ins-card">
+      <div class="ins-ico" style="background:${prioritas.color}; color:${prioritas.txt}">${prioritas.icon}</div>
+      <div class="ins-body">
+        <div class="ins-n">${prioritas.label}</div>
+        <div class="ins-status ${getStatus(prioritasId, scores[prioritasId]||50).cls}">${getStatus(prioritasId, scores[prioritasId]||50).txt}</div>
+        <div class="ins-desc">${getInsightDesc(prioritasId, scores[prioritasId]||50)}</div>
+      </div>
+    </div>
+
+    <div class="kek-card">
+      <div class="kek-t">💛 Kekuatan ${name}</div>
+      ${getKekuatan(scores).map(k => `<div class="kek-i"><span>✨</span><span>${k}</span></div>`).join('')}
+    </div>
+
+    ${!isPremium ? `
+      <div class="label-xs">5 sistem lainnya</div>
+      <div class="ins-card locked">
+        <div class="ins-ico" style="background:var(--sky-light)">🌀</div>
+        <div class="ins-body">
+          <div class="ins-n">Vestibular — Keseimbangan</div>
+          <div class="ins-status s-mid">Perlu stimulasi tambahan</div>
+          <div class="ins-desc">Insight lengkap tersedia di paket premium...</div>
+        </div>
+      </div>
+      <div class="paywall">
+        <div class="pw-em">🔓</div>
+        <div class="pw-t">Lihat profil lengkap ${name}</div>
+        <div class="pw-s">Panduan personal untuk semua 6 sistem sensorik</div>
+        <div class="pw-feats">
+          <div class="pw-feat">Insight 5 sistem sensorik lainnya</div>
+          <div class="pw-feat">Planner aktivitas harian personal</div>
+          <div class="pw-feat">Panduan saat anak meltdown</div>
+          <div class="pw-feat">Video stimulasi berjenjang</div>
+          <div class="pw-feat">Laporan untuk dokter/terapis</div>
+        </div>
+        <button class="btn btn-primary" onclick="openLynk()">Mulai Langganan · Rp49.000/bln</button>
+        <div class="pw-note">Batalkan kapan saja · tanpa kontrak</div>
+      </div>
+    ` : `
+      <div class="label-xs">Semua sistem sensorik</div>
+      ${PUSAT.filter(p => p.id !== prioritasId).map(p => {
+        const v = scores[p.id] || 50;
+        const st = getStatus(p.id, v);
+        return `<div class="ins-card">
+          <div class="ins-ico" style="background:${p.color}">${p.icon}</div>
+          <div class="ins-body">
+            <div class="ins-n">${p.label}</div>
+            <div class="ins-status ${st.cls}">${st.txt}</div>
+            <div class="ins-desc">${getInsightDesc(p.id, v)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    `}
+
+    <button class="btn btn-primary" onclick="navTo('beranda')">Ke beranda →</button>
+    <div style="height:16px"></div>
+  `;
+  document.getElementById('hasil-body').innerHTML = html;
+}
+
+function getInsightDesc(id, v) {
+  const descs = {
+    taktil: v >= 70 ? 'Sistem sentuhan anak berkembang dengan baik. Tetap berikan variasi pengalaman taktil untuk mempertahankan perkembangan.' : v >= 45 ? 'Anak membutuhkan lebih banyak input taktil. Kegiatan seperti sensory bin dan finger painting sangat direkomendasikan.' : 'Anak mudah terganggu oleh tekstur atau sentuhan tak terduga. Desensitisasi bertahap sangat diperlukan.',
+    vestibular: v >= 70 ? 'Keseimbangan dan koordinasi gerak anak sudah baik. Pertahankan dengan aktivitas fisik rutin.' : v >= 45 ? 'Anak perlu lebih banyak stimulasi gerak dan keseimbangan. Ayunan dan aktivitas berlari sangat membantu.' : 'Anak sangat sensitif terhadap gerakan. Hindari gerakan mendadak dan kenalkan secara bertahap.',
+    proprioseptif: v >= 70 ? 'Kesadaran tubuh anak berkembang baik. Koordinasi dan kontrol kekuatan sudah sesuai usianya.' : v >= 45 ? 'Anak butuh input proprioseptif lebih. Aktivitas "heavy work" seperti mendorong benda sangat efektif.' : 'Anak kesulitan merasakan posisi dan kekuatan tubuhnya. Deep pressure dan heavy work diprioritaskan.',
+    auditori: v >= 70 ? 'Pemrosesan suara anak sangat baik. Terus kenalkan musik dan permainan suara yang beragam.' : v >= 45 ? 'Anak perlu stimulasi auditori lebih terstruktur. Musik ritmikal dan permainan suara sangat membantu.' : 'Anak mudah terganggu atau kewalahan oleh suara. Siapkan lingkungan yang lebih tenang saat belajar.',
+    visual: v >= 70 ? 'Pemrosesan visual anak sangat baik. Tracking mata dan diskriminasi visual berkembang baik.' : v >= 45 ? 'Beberapa aspek visual perlu dilatih. Puzzle dan aktivitas tracking visual sangat direkomendasikan.' : 'Anak mudah overwhelmed secara visual. Kurangi stimulus visual yang berlebihan di lingkungan belajar.',
+    interoeptif: v >= 70 ? 'Kesadaran interoeptif anak berkembang baik. Anak bisa mengenali sinyal tubuhnya dengan baik.' : v >= 45 ? 'Anak perlu dibantu mengenali sinyal tubuhnya. Latihan napas dan body scan sederhana sangat membantu.' : 'Anak kesulitan mengenali sinyal dari dalam tubuhnya. Latihan mindfulness sederhana sangat diperlukan.',
+  };
+  return descs[id] || 'Perlu observasi lebih lanjut.';
+}
+
+function getKekuatan(s) {
+  const kek = [];
+  if ((s.auditori||50) >= 65) kek.push('Kemampuan mendengar dan fokus auditori yang baik');
+  if ((s.visual||50) >= 65) kek.push('Pemrosesan visual dan perhatian terhadap detail yang tajam');
+  if ((s.proprioseptif||50) >= 65) kek.push('Koordinasi dan kesadaran tubuh yang berkembang baik');
+  if ((s.vestibular||50) >= 65) kek.push('Keseimbangan dan koordinasi gerak yang baik');
+  if ((s.taktil||50) >= 65) kek.push('Toleransi sentuhan dan eksplorasi fisik yang baik');
+  if ((s.interoeptif||50) >= 65) kek.push('Kesadaran dan kepekaan terhadap sinyal tubuh sendiri');
+  if (kek.length === 0) kek.push('Sedang dalam proses perkembangan yang unik', 'Memiliki potensi yang bisa dikembangkan dengan stimulasi tepat');
+  return kek.slice(0, 3);
+}
+
+// ═══════════════════════════════════════════
+// BERANDA
+// ═══════════════════════════════════════════
+function renderBeranda() {
+  const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Bunda') : 'Bunda';
+  const h = new Date().getHours();
+  const greet = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
+  document.getElementById('beranda-name').textContent = name;
+  document.getElementById('beranda-time').textContent = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+
+  const childName = currentChild ? currentChild.name : null;
+  document.getElementById('beranda-sub').textContent = childName
+    ? `${childName} butuh perhatian di ${getWeakAreas(scores).length} area hari ini`
+    : 'Mulai dengan observasi sensorik anak';
+
+  // Chips
+  const chipsHtml = childName
+    ? `<div class="chip on"><div class="chip-av" style="background:var(--sage)">${childName.slice(0,2).toUpperCase()}</div><span class="chip-nm">${childName}</span></div>
+       <div class="chip" onclick="goScreen('s-onboard')"><div class="chip-av" style="background:var(--text3)">+</div><span class="chip-nm">Tambah anak</span></div>`
+    : `<div class="chip on" onclick="goScreen('s-onboard')"><div class="chip-av" style="background:var(--peach)">+</div><span class="chip-nm">Tambah anak pertama</span></div>`;
+  document.getElementById('chips-row').innerHTML = chipsHtml;
+
+  if (!childName || Object.keys(scores).length === 0) {
+    document.getElementById('beranda-body').innerHTML = `
+      <div class="card card-p" style="text-align:center;padding:32px 20px">
+        <div style="font-size:40px;margin-bottom:12px">🌱</div>
+        <div style="font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Mulai observasi sensorik</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">Kenali profil sensorik unik anak untuk pendampingan yang lebih tepat</div>
+        <button class="btn btn-primary" onclick="goScreen('s-onboard')">Mulai sekarang →</button>
+      </div>
+    `;
+    return;
+  }
+
+  const weakAreas = getWeakAreas(scores);
+  const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
+  const topWeak = sorted.slice(0,2).map(([id]) => PUSAT.find(p=>p.id===id));
+
+  const aktHariIni = AKTIVITAS
+    .filter(a => weakAreas.includes(a.pusat))
+    .slice(0, 3);
+
+  document.getElementById('beranda-body').innerHTML = `
+    <div class="hero-card">
+      <div class="hc-lbl">Profil sensorik ${childName}</div>
+      <div class="hc-t">${topWeak.map(p=>p.label.replace('Sistem ','')).join(' & ')} perlu perhatian</div>
+      <div class="hc-chips">
+        ${PUSAT.map(p => `<div class="hc-chip ${(scores[p.id]||50) < 60 ? 'al' : ''}">${(scores[p.id]||50) >= 60 ? '✅' : '⚠'} ${p.icon}</div>`).join('')}
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-row"><span class="sec-t">Sistem sensorik</span><span class="sec-lnk" onclick="goScreen('s-hasil')">Lihat detail →</span></div>
+      <div class="ins-row">
+        ${PUSAT.map(p => {
+          const v = scores[p.id]||50;
+          return `<div class="ins-mini" onclick="goScreen('s-hasil')">
+            <div class="im-ic">${p.icon}</div>
+            <div class="im-n">${p.label.replace('Sistem ','').substring(0,12)}</div>
+            <div class="im-d">${v>=70?'Baik':v>=45?'Perlu stimulasi':'Prioritas'}</div>
+            <div class="im-dot ${v>=70?'d-ok':v>=45?'d-mid':'d-warn'}"></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div>
+      <div class="sec-row"><span class="sec-t">Aktivitas hari ini</span><span class="sec-lnk" onclick="navTo('aktivitas')">Semua →</span></div>
+      <div class="act-list">
+        ${aktHariIni.length > 0 ? aktHariIni.map((a, i) => `
+          <div class="act-row">
+            <div class="act-ico ${a.clr}">${a.ico}</div>
+            <div style="flex:1">
+              <div class="act-n">${a.nama}</div>
+              <div class="act-m">${PUSAT.find(p=>p.id===a.pusat)?.label.replace('Sistem ','')} · ${a.durasi}</div>
+            </div>
+            ${isPremium
+              ? `<div class="chk ${i===0?'done':''}" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':'';">${i===0?'✓':''}</div>`
+              : i===0
+                ? `<div class="chk done" onclick="this.classList.toggle('done');this.textContent=this.classList.contains('done')?'✓':'';">✓</div>`
+                : `<span class="act-lock" onclick="openLynk()">🔒</span>`
+            }
+          </div>
+        `).join('') : `<div style="font-size:13px;color:var(--text2);text-align:center;padding:16px">Belum ada rekomendasi aktivitas</div>`}
+      </div>
+    </div>
+
+    <div class="sukses">
+      <div class="suk-t">⭐ 3 sukses kecil hari ini</div>
+      ${['Mau mencoba tekstur baru','Duduk fokus 5 menit','Bermain tenang bersama orang tua'].map((t,i) => `
+        <div class="suk-i" onclick="toggleSukses(this)">
+          <div class="suk-b ${i===0?'on':'}'}">${i===0?'✓':''}</div>
+          <div class="suk-tx ${i===0?'done':''}">${t}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${!isPremium ? `
+      <div class="hero-card" style="cursor:pointer" onclick="openLynk()">
+        <div class="hc-lbl">Upgrade ke Premium</div>
+        <div class="hc-t">Buka semua fitur & aktivitas</div>
+        <div style="margin-top:10px;padding:10px 16px;background:rgba(255,255,255,.2);border-radius:10px;font-size:13px;font-family:'Nunito',sans-serif;font-weight:700;color:#fff;text-align:center">Mulai Rp49.000/bulan →</div>
+      </div>
+    ` : ''}
+    <div style="height:8px"></div>
+  `;
+}
+
+function getWeakAreas(s) {
+  return Object.entries(s).filter(([,v]) => v < 65).map(([id]) => id);
+}
+
+function toggleSukses(el) {
+  const b = el.querySelector('.suk-b');
+  const t = el.querySelector('.suk-tx');
+  b.classList.toggle('on');
+  b.textContent = b.classList.contains('on') ? '✓' : '';
+  t.classList.toggle('done');
+}
+
+// ═══════════════════════════════════════════
+// AKTIVITAS
+// ═══════════════════════════════════════════
+let currentFilter = 'semua';
+
+function renderAktivitas() {
+  const childName = currentChild ? currentChild.name : null;
+  document.getElementById('akt-sub').textContent = childName
+    ? `Rekomendasi untuk ${childName} · ${isPremium ? 'Premium' : 'Gratis — 1 aktivitas'}`
+    : 'Panduan kegiatan stimulasi sensorik';
+
+  renderAktList();
+}
+
+function filterAkt(btn, filter) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  currentFilter = filter;
+  renderAktList();
+}
+
+function renderAktList() {
+  const filtered = currentFilter === 'semua' ? AKTIVITAS : AKTIVITAS.filter(a => a.pusat === currentFilter);
+
+  const html = !isPremium ? `
+    <div class="premium-gate">
+      <div class="pg-em">🎯</div>
+      <div class="pg-t">Aktivitas Premium</div>
+      <div class="pg-s">Dapatkan akses ke semua aktivitas stimulasi yang dipersonalisasi sesuai profil sensorik anak</div>
+      <div class="pg-price">Rp49.000</div>
+      <div class="pg-per">per bulan · batalkan kapan saja</div>
+      <button class="btn-white" onclick="openLynk()">Mulai Langganan →</button>
+    </div>
+    <div class="label-xs" style="margin-bottom:10px">Preview aktivitas</div>
+    ${filtered.slice(0,2).map(renderAktCard).join('')}
+    ${filtered.slice(2).map(a => renderAktCardLocked(a)).join('')}
+  ` : filtered.map(renderAktCard).join('');
+
+  document.getElementById('akt-body').innerHTML = html;
+}
+
+function renderAktCard(a) {
+  const p = PUSAT.find(p => p.id === a.pusat);
+  return `
+    <div class="akt-card">
+      <div class="akt-top">
+        <div class="akt-ico-big ${a.clr}">${a.ico}</div>
+        <div>
+          <div class="akt-name">${a.nama}</div>
+          <div class="akt-tags">
+            <span class="tag ${a.tags[0]}">${p?.label.replace('Sistem ','')}</span>
+            <span class="tag tag-sky">${a.durasi}</span>
+            <span class="tag tag-lav">Level ${a.level}</span>
+          </div>
+        </div>
+      </div>
+      <div class="akt-desc">${a.desc}</div>
+    </div>
+  `;
+}
+
+function renderAktCardLocked(a) {
+  const p = PUSAT.find(p => p.id === a.pusat);
+  return `
+    <div class="akt-card" style="opacity:.5;filter:blur(2px);pointer-events:none">
+      <div class="akt-top">
+        <div class="akt-ico-big ${a.clr}">🔒</div>
+        <div>
+          <div class="akt-name">${a.nama}</div>
+          <div class="akt-tags">
+            <span class="tag ${a.tags[0]}">${p?.label.replace('Sistem ','')}</span>
+            <span class="tag tag-sky">${a.durasi}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════
+// PROFIL
+// ═══════════════════════════════════════════
+function renderProfil() {
+  const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '—') : '—';
+  const email = currentUser ? currentUser.email : '—';
+  document.getElementById('profil-name').textContent = name;
+  document.getElementById('profil-email').textContent = email;
+  const planEl = document.getElementById('profil-plan');
+  planEl.textContent = isPremium ? '⭐ Paket Premium' : 'Paket Gratis';
+  planEl.className = 'plan-chip ' + (isPremium ? 'plan-pro' : 'plan-free');
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+const SCREENS_WITH_NAV = ['s-beranda','s-aktivitas','s-hasil','s-profil'];
+
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  const showNav = SCREENS_WITH_NAV.includes(id);
+  document.getElementById('bnav').classList.toggle('show', showNav);
+
+  if (id === 's-beranda') renderBeranda();
+  if (id === 's-aktivitas') renderAktivitas();
+  if (id === 's-hasil') renderHasil();
+  if (id === 's-profil') renderProfil();
+}
+
+function showApp() {
+  document.getElementById('bnav').classList.add('show');
+  if (currentChild && Object.keys(scores).length > 0) {
+    goScreen('s-beranda');
+  } else {
+    goScreen('s-onboard');
+  }
+}
+
+function navTo(tab) {
+  const map = { beranda:'s-beranda', aktivitas:'s-aktivitas', hasil:'s-hasil', profil:'s-profil' };
+  goScreen(map[tab]);
+  document.querySelectorAll('.bnav-i').forEach((el, i) => {
+    el.classList.toggle('on', ['beranda','aktivitas','hasil','profil'][i] === tab);
+  });
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function openLynk() {
+  window.open(LYNK_URL, '_blank');
+}
+
+function showErr(msg) {
+  const el = document.getElementById('login-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
