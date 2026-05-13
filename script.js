@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════
 // CONFIG — GANTI DENGAN NILAI KAMU
 // ═══════════════════════════════════════════
-const SUPABASE_URL = 'https://sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
+const SUPABASE_URL = 'https://spflyyqvawiiuazchyht.supabase.co/rest/v1/';
 const SUPABASE_ANON_KEY = 'sb_secret_yAJ0blCdDAolXDeGEbNneA_U1Z7zwfO';
 const LYNK_URL = 'http://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout'; // ganti dengan link Lynk.id kamu
 
