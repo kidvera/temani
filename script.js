@@ -1,16 +1,17 @@
 // ═══════════════════════════════════════════
 // CONFIG — GANTI DENGAN NILAI KAMU
 // ═══════════════════════════════════════════
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-const LYNK_URL = 'https://lynk.id/YOUR_LINK'; // ganti dengan link Lynk.id kamu
+const SUPABASE_URL = 'https://sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
+const SUPABASE_ANON_KEY = 'sb_secret_yAJ0blCdDAolXDeGEbNneA_U1Z7zwfO';
+const LYNK_URL = 'http://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout'; // ganti dengan link Lynk.id kamu
 
+ 
 // ═══════════════════════════════════════════
 // SUPABASE INIT
 // ═══════════════════════════════════════════
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+ 
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
@@ -21,7 +22,7 @@ let answers = [];
 let currentQ = 0;
 let scores = {};
 let isPremium = false;
-
+ 
 // ═══════════════════════════════════════════
 // SOAL — 30 pertanyaan, 5 per pusat
 // ═══════════════════════════════════════════
@@ -33,7 +34,7 @@ const PUSAT = [
   { id:'visual',        label:'Sistem Visual',        icon:'👁️', cls:'b-visual',        color:'var(--rose-light)',   txt:'var(--rose)' },
   { id:'interoeptif',   label:'Interoeptif',          icon:'❤️', cls:'b-interoeptif',   color:'var(--sage-light)',   txt:'var(--sage-dark)' },
 ];
-
+ 
 // Skor jawaban: posisi 0 = paling normal (4 poin), posisi 3 = paling bermasalah (1 poin)
 const SOAL = [
   // TAKTIL (0-4)
@@ -73,7 +74,7 @@ const SOAL = [
   { pusat:5, q:'Apakah anak peka terhadap detak jantung atau napasnya sendiri?', ctx:'💡 Perhatikan apakah anak sadar nafasnya sesak saat lelah, atau jantung berdegup kencang', opts:['Peka dan bisa mendeskripsikan sensasi tubuhnya','Cukup sadar terhadap sinyal tubuhnya','Kadang tidak menyadari perubahan fisik yang jelas','Hampir tidak pernah sadar terhadap sensasi dalam tubuhnya'] },
   { pusat:5, q:'Bagaimana anak merespons kebutuhan ke toilet?', ctx:'💡 Perhatikan apakah anak bisa menahan dan pergi ke toilet tepat waktu', opts:['Menyadari kebutuhan lebih awal dan pergi tepat waktu','Kadang mepet tapi masih terkontrol','Sering baru bilang saat sudah tidak tahan','Sering kecelakaan atau tidak menyadari kebutuhan sampai terlambat'] },
 ];
-
+ 
 // ═══════════════════════════════════════════
 // AKTIVITAS DATA
 // ═══════════════════════════════════════════
@@ -89,7 +90,7 @@ const AKTIVITAS = [
   { nama:'Napas balon', pusat:'interoeptif', durasi:'5 menit', level:1, ico:'🎈', clr:'ic-g', tags:['tag-sage','Interoeptif'], desc:'Ajarkan anak meniup balon sambil merasakan napasnya. Tanya: "Rasanya gimana di perut saat menarik napas dalam?" Ini melatih kesadaran interoeptif terhadap sensasi dalam tubuh.' },
   { nama:'Cat jari & finger painting', pusat:'taktil', durasi:'20 menit', level:2, ico:'🎨', clr:'ic-p', tags:['tag-sage','Taktil'], desc:'Mulai dengan kuas, baru pelan-pelan ajak sentuh cat langsung. Jangan paksa. Kenalkan satu tekstur baru per sesi. Setelah nyaman, tambahkan tekstur lain seperti spons atau kertas kasar.' },
 ];
-
+ 
 // ═══════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════
@@ -110,12 +111,11 @@ async function initApp() {
     goScreen('s-login');
   }
 }
-
+ 
 function showDemoMode() {
-  showToast('Mode demo aktif — hubungkan Supabase untuk simpan data');
   goScreen('s-onboard');
 }
-
+ 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
@@ -133,7 +133,7 @@ async function doLogin() {
   await loadUserData();
   showApp();
 }
-
+ 
 async function doRegister() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
@@ -151,11 +151,11 @@ async function doRegister() {
   currentUser = data.user;
   showApp();
 }
-
+ 
 async function doGoogleLogin() {
   await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
 }
-
+ 
 async function doLogout() {
   await sb.auth.signOut();
   currentUser = null;
@@ -164,7 +164,7 @@ async function doLogout() {
   document.getElementById('bnav').classList.remove('show');
   goScreen('s-login');
 }
-
+ 
 // ═══════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════
@@ -181,7 +181,7 @@ async function loadUserData() {
     if (profile) isPremium = profile.is_premium || false;
   } catch(e) { console.log('Load data error:', e); }
 }
-
+ 
 async function saveChild(name, age) {
   if (SUPABASE_URL.includes('YOUR_PROJECT')) {
     currentChild = { id: 'demo-child', name, age_range: age };
@@ -190,13 +190,13 @@ async function saveChild(name, age) {
   const { data, error } = await sb.from('children').upsert({ user_id: currentUser.id, name, age_range: age }).select().single();
   if (!error && data) currentChild = data;
 }
-
+ 
 async function saveResults(scrs) {
   if (SUPABASE_URL.includes('YOUR_PROJECT')) { scores = scrs; return; }
   scores = scrs;
   await sb.from('sensory_results').insert({ child_id: currentChild.id, user_id: currentUser.id, scores: scrs, created_at: new Date().toISOString() });
 }
-
+ 
 // ═══════════════════════════════════════════
 // ONBOARDING
 // ═══════════════════════════════════════════
@@ -207,11 +207,11 @@ function selectAge(el, age) {
   const nameVal = document.getElementById('child-name').value.trim();
   document.getElementById('onb-next').disabled = !nameVal;
 }
-
+ 
 document.getElementById('child-name').addEventListener('input', function() {
   document.getElementById('onb-next').disabled = !this.value.trim() || !selectedAge;
 });
-
+ 
 async function startObservasi() {
   const name = document.getElementById('child-name').value.trim();
   if (!name || !selectedAge) return;
@@ -222,7 +222,7 @@ async function startObservasi() {
   document.getElementById('obs-child-label').textContent = 'Observasi ' + name;
   goScreen('s-obs');
 }
-
+ 
 // ═══════════════════════════════════════════
 // OBSERVASI
 // ═══════════════════════════════════════════
@@ -231,17 +231,17 @@ function renderQuestion() {
   const p = PUSAT[q.pusat];
   const total = SOAL.length;
   const pct = Math.round(((currentQ) / total) * 100);
-
+ 
   document.getElementById('obs-fill').style.width = Math.max(3, pct) + '%';
   document.getElementById('obs-ctr').textContent = (currentQ + 1) + ' / ' + total;
   document.getElementById('q-num').textContent = 'Pertanyaan ' + (currentQ + 1) + ' dari ' + total;
   document.getElementById('q-text').textContent = q.q;
   document.getElementById('q-ctx').textContent = q.ctx;
-
+ 
   const badge = document.getElementById('obs-badge');
   badge.className = 'pusat-badge ' + p.cls;
   badge.textContent = p.icon + ' ' + p.label;
-
+ 
   const optsEl = document.getElementById('obs-opts');
   optsEl.innerHTML = q.opts.map((o, i) => `
     <div class="obs-opt ${answers[currentQ] === i ? 'sel' : ''}" onclick="selectOpt(${i})">
@@ -249,23 +249,23 @@ function renderQuestion() {
       <span class="opt-txt">${o}</span>
     </div>
   `).join('');
-
+ 
   const nextBtn = document.getElementById('obs-next');
   nextBtn.disabled = answers[currentQ] === null;
   nextBtn.textContent = currentQ === total - 1 ? 'Lihat hasil →' : 'Lanjut →';
 }
-
+ 
 function selectOpt(i) {
   answers[currentQ] = i;
   document.querySelectorAll('.obs-opt').forEach((el, idx) => el.classList.toggle('sel', idx === i));
   document.getElementById('obs-next').disabled = false;
 }
-
+ 
 function obsBack() {
   if (currentQ > 0) { currentQ--; renderQuestion(); }
   else goScreen('s-onboard');
 }
-
+ 
 async function obsNext() {
   if (answers[currentQ] === null) return;
   if (currentQ < SOAL.length - 1) {
@@ -289,7 +289,7 @@ async function obsNext() {
     goScreen('s-hasil');
   }
 }
-
+ 
 // ═══════════════════════════════════════════
 // HASIL
 // ═══════════════════════════════════════════
@@ -297,18 +297,18 @@ function renderHasil() {
   const name = currentChild ? currentChild.name : 'Anak';
   document.getElementById('hasil-name').textContent = name;
   document.getElementById('hasil-date').textContent = 'Usia ' + (currentChild ? currentChild.age_range : '—') + ' · ' + new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
-
+ 
   const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
   const prioritasId = sorted[0] ? sorted[0][0] : 'taktil';
   const prioritas = PUSAT.find(p => p.id === prioritasId);
-
+ 
   const getClass = v => v >= 70 ? {fill:'f-high',pct:'p-high'} : v >= 45 ? {fill:'f-mid',pct:'p-mid'} : {fill:'f-low',pct:'p-low'};
   const getStatus = (id, v) => {
     if (v >= 70) return { cls:'s-ok', txt:'Respons normal — berkembang dengan baik' };
     if (v >= 45) return { cls:'s-mid', txt: v < 55 ? 'Cenderung hiporesponsif — perlu stimulasi tambahan' : 'Sedikit sensitif — perhatikan kondisi tertentu' };
     return { cls:'s-alert', txt:'Cenderung hiperresponsif — butuh pendampingan khusus' };
   };
-
+ 
   const html = `
     <div class="skor-card">
       <div class="skor-title">Skor per sistem sensorik</div>
@@ -322,7 +322,7 @@ function renderHasil() {
         </div>`;
       }).join('')}
     </div>
-
+ 
     <div class="label-xs">Prioritas utama · gratis</div>
     <div class="ins-card">
       <div class="ins-ico" style="background:${prioritas.color}; color:${prioritas.txt}">${prioritas.icon}</div>
@@ -332,12 +332,12 @@ function renderHasil() {
         <div class="ins-desc">${getInsightDesc(prioritasId, scores[prioritasId]||50)}</div>
       </div>
     </div>
-
+ 
     <div class="kek-card">
       <div class="kek-t">💛 Kekuatan ${name}</div>
       ${getKekuatan(scores).map(k => `<div class="kek-i"><span>✨</span><span>${k}</span></div>`).join('')}
     </div>
-
+ 
     ${!isPremium ? `
       <div class="label-xs">5 sistem lainnya</div>
       <div class="ins-card locked">
@@ -377,13 +377,13 @@ function renderHasil() {
         </div>`;
       }).join('')}
     `}
-
+ 
     <button class="btn btn-primary" onclick="navTo('beranda')">Ke beranda →</button>
     <div style="height:16px"></div>
   `;
   document.getElementById('hasil-body').innerHTML = html;
 }
-
+ 
 function getInsightDesc(id, v) {
   const descs = {
     taktil: v >= 70 ? 'Sistem sentuhan anak berkembang dengan baik. Tetap berikan variasi pengalaman taktil untuk mempertahankan perkembangan.' : v >= 45 ? 'Anak membutuhkan lebih banyak input taktil. Kegiatan seperti sensory bin dan finger painting sangat direkomendasikan.' : 'Anak mudah terganggu oleh tekstur atau sentuhan tak terduga. Desensitisasi bertahap sangat diperlukan.',
@@ -395,7 +395,7 @@ function getInsightDesc(id, v) {
   };
   return descs[id] || 'Perlu observasi lebih lanjut.';
 }
-
+ 
 function getKekuatan(s) {
   const kek = [];
   if ((s.auditori||50) >= 65) kek.push('Kemampuan mendengar dan fokus auditori yang baik');
@@ -407,7 +407,7 @@ function getKekuatan(s) {
   if (kek.length === 0) kek.push('Sedang dalam proses perkembangan yang unik', 'Memiliki potensi yang bisa dikembangkan dengan stimulasi tepat');
   return kek.slice(0, 3);
 }
-
+ 
 // ═══════════════════════════════════════════
 // BERANDA
 // ═══════════════════════════════════════════
@@ -417,19 +417,19 @@ function renderBeranda() {
   const greet = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
   document.getElementById('beranda-name').textContent = name;
   document.getElementById('beranda-time').textContent = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-
+ 
   const childName = currentChild ? currentChild.name : null;
   document.getElementById('beranda-sub').textContent = childName
     ? `${childName} butuh perhatian di ${getWeakAreas(scores).length} area hari ini`
     : 'Mulai dengan observasi sensorik anak';
-
+ 
   // Chips
   const chipsHtml = childName
     ? `<div class="chip on"><div class="chip-av" style="background:var(--sage)">${childName.slice(0,2).toUpperCase()}</div><span class="chip-nm">${childName}</span></div>
        <div class="chip" onclick="goScreen('s-onboard')"><div class="chip-av" style="background:var(--text3)">+</div><span class="chip-nm">Tambah anak</span></div>`
     : `<div class="chip on" onclick="goScreen('s-onboard')"><div class="chip-av" style="background:var(--peach)">+</div><span class="chip-nm">Tambah anak pertama</span></div>`;
   document.getElementById('chips-row').innerHTML = chipsHtml;
-
+ 
   if (!childName || Object.keys(scores).length === 0) {
     document.getElementById('beranda-body').innerHTML = `
       <div class="card card-p" style="text-align:center;padding:32px 20px">
@@ -441,15 +441,15 @@ function renderBeranda() {
     `;
     return;
   }
-
+ 
   const weakAreas = getWeakAreas(scores);
   const sorted = Object.entries(scores).sort((a,b) => a[1]-b[1]);
   const topWeak = sorted.slice(0,2).map(([id]) => PUSAT.find(p=>p.id===id));
-
+ 
   const aktHariIni = AKTIVITAS
     .filter(a => weakAreas.includes(a.pusat))
     .slice(0, 3);
-
+ 
   document.getElementById('beranda-body').innerHTML = `
     <div class="hero-card">
       <div class="hc-lbl">Profil sensorik ${childName}</div>
@@ -458,7 +458,7 @@ function renderBeranda() {
         ${PUSAT.map(p => `<div class="hc-chip ${(scores[p.id]||50) < 60 ? 'al' : ''}">${(scores[p.id]||50) >= 60 ? '✅' : '⚠'} ${p.icon}</div>`).join('')}
       </div>
     </div>
-
+ 
     <div>
       <div class="sec-row"><span class="sec-t">Sistem sensorik</span><span class="sec-lnk" onclick="goScreen('s-hasil')">Lihat detail →</span></div>
       <div class="ins-row">
@@ -473,7 +473,7 @@ function renderBeranda() {
         }).join('')}
       </div>
     </div>
-
+ 
     <div>
       <div class="sec-row"><span class="sec-t">Aktivitas hari ini</span><span class="sec-lnk" onclick="navTo('aktivitas')">Semua →</span></div>
       <div class="act-list">
@@ -494,7 +494,7 @@ function renderBeranda() {
         `).join('') : `<div style="font-size:13px;color:var(--text2);text-align:center;padding:16px">Belum ada rekomendasi aktivitas</div>`}
       </div>
     </div>
-
+ 
     <div class="sukses">
       <div class="suk-t">⭐ 3 sukses kecil hari ini</div>
       ${['Mau mencoba tekstur baru','Duduk fokus 5 menit','Bermain tenang bersama orang tua'].map((t,i) => `
@@ -504,7 +504,7 @@ function renderBeranda() {
         </div>
       `).join('')}
     </div>
-
+ 
     ${!isPremium ? `
       <div class="hero-card" style="cursor:pointer" onclick="openLynk()">
         <div class="hc-lbl">Upgrade ke Premium</div>
@@ -515,11 +515,11 @@ function renderBeranda() {
     <div style="height:8px"></div>
   `;
 }
-
+ 
 function getWeakAreas(s) {
   return Object.entries(s).filter(([,v]) => v < 65).map(([id]) => id);
 }
-
+ 
 function toggleSukses(el) {
   const b = el.querySelector('.suk-b');
   const t = el.querySelector('.suk-tx');
@@ -527,31 +527,31 @@ function toggleSukses(el) {
   b.textContent = b.classList.contains('on') ? '✓' : '';
   t.classList.toggle('done');
 }
-
+ 
 // ═══════════════════════════════════════════
 // AKTIVITAS
 // ═══════════════════════════════════════════
 let currentFilter = 'semua';
-
+ 
 function renderAktivitas() {
   const childName = currentChild ? currentChild.name : null;
   document.getElementById('akt-sub').textContent = childName
     ? `Rekomendasi untuk ${childName} · ${isPremium ? 'Premium' : 'Gratis — 1 aktivitas'}`
     : 'Panduan kegiatan stimulasi sensorik';
-
+ 
   renderAktList();
 }
-
+ 
 function filterAkt(btn, filter) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   currentFilter = filter;
   renderAktList();
 }
-
+ 
 function renderAktList() {
   const filtered = currentFilter === 'semua' ? AKTIVITAS : AKTIVITAS.filter(a => a.pusat === currentFilter);
-
+ 
   const html = !isPremium ? `
     <div class="premium-gate">
       <div class="pg-em">🎯</div>
@@ -565,10 +565,10 @@ function renderAktList() {
     ${filtered.slice(0,2).map(renderAktCard).join('')}
     ${filtered.slice(2).map(a => renderAktCardLocked(a)).join('')}
   ` : filtered.map(renderAktCard).join('');
-
+ 
   document.getElementById('akt-body').innerHTML = html;
 }
-
+ 
 function renderAktCard(a) {
   const p = PUSAT.find(p => p.id === a.pusat);
   return `
@@ -588,7 +588,7 @@ function renderAktCard(a) {
     </div>
   `;
 }
-
+ 
 function renderAktCardLocked(a) {
   const p = PUSAT.find(p => p.id === a.pusat);
   return `
@@ -606,7 +606,7 @@ function renderAktCardLocked(a) {
     </div>
   `;
 }
-
+ 
 // ═══════════════════════════════════════════
 // PROFIL
 // ═══════════════════════════════════════════
@@ -619,25 +619,25 @@ function renderProfil() {
   planEl.textContent = isPremium ? '⭐ Paket Premium' : 'Paket Gratis';
   planEl.className = 'plan-chip ' + (isPremium ? 'plan-pro' : 'plan-free');
 }
-
+ 
 // ═══════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════
 const SCREENS_WITH_NAV = ['s-beranda','s-aktivitas','s-hasil','s-profil'];
-
+ 
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-
+ 
   const showNav = SCREENS_WITH_NAV.includes(id);
   document.getElementById('bnav').classList.toggle('show', showNav);
-
+ 
   if (id === 's-beranda') renderBeranda();
   if (id === 's-aktivitas') renderAktivitas();
   if (id === 's-hasil') renderHasil();
   if (id === 's-profil') renderProfil();
 }
-
+ 
 function showApp() {
   document.getElementById('bnav').classList.add('show');
   if (currentChild && Object.keys(scores).length > 0) {
@@ -646,7 +646,7 @@ function showApp() {
     goScreen('s-onboard');
   }
 }
-
+ 
 function navTo(tab) {
   const map = { beranda:'s-beranda', aktivitas:'s-aktivitas', hasil:'s-hasil', profil:'s-profil' };
   goScreen(map[tab]);
@@ -654,28 +654,28 @@ function navTo(tab) {
     el.classList.toggle('on', ['beranda','aktivitas','hasil','profil'][i] === tab);
   });
 }
-
+ 
 // ═══════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════
 function openLynk() {
   window.open(LYNK_URL, '_blank');
 }
-
+ 
 function showErr(msg) {
   const el = document.getElementById('login-err');
   el.textContent = msg;
   el.style.display = 'block';
   setTimeout(() => el.style.display = 'none', 4000);
 }
-
+ 
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
-
+ 
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
