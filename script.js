@@ -1,17 +1,22 @@
 // ═══════════════════════════════════════════
-// CONFIG — GANTI DENGAN NILAI KAMU
+// CONFIG
 // ═══════════════════════════════════════════
-const SUPABASE_URL = 'https://spflyyqvawiiuazchyht.supabase.co/rest/v1/';
-const SUPABASE_ANON_KEY = 'sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
-const LYNK_URL = 'http://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout'; // ganti dengan link Lynk.id kamu
+const SUPABASE_URL = 'https://spflyyqvawiiuazchyht.supabase.co';
 
- 
+const SUPABASE_ANON_KEY = 'sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
+
+const LYNK_URL = 'http://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout';
+
+
 // ═══════════════════════════════════════════
 // SUPABASE INIT
 // ═══════════════════════════════════════════
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
- 
+
+const sb = createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
