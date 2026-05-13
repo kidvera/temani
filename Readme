@@ -1,0 +1,88 @@
+# 🌱 Temani Tumbuh
+
+Platform pendamping sensorik anak usia 6 bulan – 7 tahun.
+
+## Setup
+
+### 1. Supabase
+Buka `script.js` dan ganti di bagian CONFIG:
+```js
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+```
+
+### 2. Lynk.id
+Ganti link payment:
+```js
+const LYNK_URL = 'https://lynk.id/YOUR_LINK';
+```
+
+### 3. Supabase Tables
+Jalankan SQL ini di Supabase SQL Editor:
+
+```sql
+-- Profiles (auto-created saat register)
+create table profiles (
+  id uuid references auth.users primary key,
+  is_premium boolean default false,
+  created_at timestamptz default now()
+);
+
+-- Children
+create table children (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  name text not null,
+  age_range text,
+  created_at timestamptz default now()
+);
+
+-- Sensory Results
+create table sensory_results (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  child_id uuid references children,
+  scores jsonb,
+  created_at timestamptz default now()
+);
+
+-- RLS Policies
+alter table profiles enable row level security;
+alter table children enable row level security;
+alter table sensory_results enable row level security;
+
+create policy "Users own profile" on profiles for all using (auth.uid() = id);
+create policy "Users own children" on children for all using (auth.uid() = user_id);
+create policy "Users own results" on sensory_results for all using (auth.uid() = user_id);
+
+-- Auto-create profile on register
+create or replace function handle_new_user()
+returns trigger as $$
+begin
+  insert into profiles (id) values (new.id);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure handle_new_user();
+```
+
+### 4. Deploy ke Vercel
+1. Push ke GitHub
+2. Connect repo di vercel.com
+3. Deploy (no build config needed — static HTML)
+
+## Struktur File
+```
+index.html   — HTML utama
+style.css    — Semua styling
+script.js    — Logic, data soal, Supabase, navigasi
+README.md    — Panduan ini
+```
+
+## Monetisasi
+- Gratis: observasi + 1 insight pusat prioritas + 1 aktivitas
+- Premium (Rp49.000/bln via Lynk.id): semua insight + semua aktivitas + planner
+- Setelah user bayar di Lynk, update `is_premium = true` di tabel `profiles`
