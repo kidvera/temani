@@ -1,14 +1,24 @@
-```js
 // ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
-const SUPABASE_URL = 'https://spflyyqvawiiuazchyht.supabase.co';
+const SUPABASE_URL =
+  'https://spflyyqvawiiuazchyht.supabase.co';
 
 const SUPABASE_ANON_KEY =
   'sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
 
 const LYNK_URL =
   'https://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout';
+
+
+// ═══════════════════════════════════════════
+// CHECK SUPABASE
+// ═══════════════════════════════════════════
+if (!window.supabase) {
+  alert(
+    'Supabase gagal dimuat. Pastikan CDN supabase sudah ada di HTML.'
+  );
+}
 
 
 // ═══════════════════════════════════════════
@@ -38,17 +48,34 @@ let isPremium = false;
 // GOOGLE LOGIN
 // ═══════════════════════════════════════════
 async function doGoogleLogin() {
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo:
-        'https://temani-cqctsekqe-kidveras-projects.vercel.app'
-    }
-  });
 
-  if (error) {
-    console.log(error);
-    showErr(error.message);
+  console.log('Google login clicked');
+
+  try {
+
+    const { data, error } =
+      await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo:
+            'https://temani-cqctsekqe-kidveras-projects.vercel.app/'
+        }
+      });
+
+    console.log('OAuth result:', data);
+
+    if (error) {
+      console.log('OAuth error:', error);
+      alert(error.message);
+    }
+
+  } catch (err) {
+
+    console.log('Google login crash:', err);
+
+    alert(
+      'Terjadi error saat login Google'
+    );
   }
 }
 
@@ -57,23 +84,33 @@ async function doGoogleLogin() {
 // LOGIN EMAIL
 // ═══════════════════════════════════════════
 async function doLogin() {
+
+  console.log('Login email clicked');
+
   const email = document
     .getElementById('login-email')
-    .value.trim();
+    ?.value.trim();
 
   const pass =
-    document.getElementById('login-pass').value;
+    document.getElementById('login-pass')
+    ?.value;
 
   if (!email || !pass) {
-    showErr('Isi email dan kata sandi dulu ya');
+    showErr(
+      'Isi email dan kata sandi dulu ya'
+    );
     return;
   }
 
   const loginBtn =
     document.getElementById('login-btn');
 
-  loginBtn.textContent = 'Memproses...';
-  loginBtn.disabled = true;
+  if (loginBtn) {
+    loginBtn.textContent =
+      'Memproses...';
+
+    loginBtn.disabled = true;
+  }
 
   const { data, error } =
     await sb.auth.signInWithPassword({
@@ -82,15 +119,23 @@ async function doLogin() {
     });
 
   if (error) {
+
+    console.log(error);
+
     showErr(
       error.message ===
-        'Invalid login credentials'
+      'Invalid login credentials'
         ? 'Email atau kata sandi salah'
         : error.message
     );
 
-    loginBtn.textContent = 'Masuk →';
-    loginBtn.disabled = false;
+    if (loginBtn) {
+      loginBtn.textContent =
+        'Masuk →';
+
+      loginBtn.disabled = false;
+    }
+
     return;
   }
 
@@ -106,28 +151,40 @@ async function doLogin() {
 // REGISTER
 // ═══════════════════════════════════════════
 async function doRegister() {
+
+  console.log('Register clicked');
+
   const email = document
     .getElementById('login-email')
-    .value.trim();
+    ?.value.trim();
 
   const pass =
-    document.getElementById('login-pass').value;
+    document.getElementById('login-pass')
+    ?.value;
 
   if (!email || !pass) {
-    showErr('Isi email dan kata sandi dulu ya');
+    showErr(
+      'Isi email dan kata sandi dulu ya'
+    );
     return;
   }
 
   if (pass.length < 6) {
-    showErr('Kata sandi minimal 6 karakter');
+    showErr(
+      'Kata sandi minimal 6 karakter'
+    );
     return;
   }
 
   const loginBtn =
     document.getElementById('login-btn');
 
-  loginBtn.textContent = 'Mendaftarkan...';
-  loginBtn.disabled = true;
+  if (loginBtn) {
+    loginBtn.textContent =
+      'Mendaftarkan...';
+
+    loginBtn.disabled = true;
+  }
 
   const { data, error } =
     await sb.auth.signUp({
@@ -136,16 +193,26 @@ async function doRegister() {
     });
 
   if (error) {
+
+    console.log(error);
+
     showErr(error.message);
 
-    loginBtn.textContent = 'Masuk →';
-    loginBtn.disabled = false;
+    if (loginBtn) {
+      loginBtn.textContent =
+        'Masuk →';
+
+      loginBtn.disabled = false;
+    }
+
     return;
   }
 
   currentUser = data.user;
 
-  showToast('Akun berhasil dibuat');
+  showToast(
+    'Akun berhasil dibuat'
+  );
 
   await loadUserData();
 
@@ -157,6 +224,7 @@ async function doRegister() {
 // LOGOUT
 // ═══════════════════════════════════════════
 async function doLogout() {
+
   await sb.auth.signOut();
 
   currentUser = null;
@@ -165,7 +233,7 @@ async function doLogout() {
 
   document
     .getElementById('bnav')
-    .classList.remove('show');
+    ?.classList.remove('show');
 
   goScreen('s-login');
 }
@@ -175,23 +243,37 @@ async function doLogout() {
 // CHECK SESSION
 // ═══════════════════════════════════════════
 async function initApp() {
+
+  console.log('App init');
+
   try {
+
     const {
       data: { session }
     } = await sb.auth.getSession();
 
+    console.log('Session:', session);
+
     if (session) {
+
       currentUser = session.user;
 
       await loadUserData();
 
       showApp();
+
     } else {
+
       goScreen('s-login');
     }
 
   } catch (err) {
-    console.log(err);
+
+    console.log(
+      'Init error:',
+      err
+    );
+
     goScreen('s-login');
   }
 }
@@ -201,47 +283,83 @@ async function initApp() {
 // LOAD USER DATA
 // ═══════════════════════════════════════════
 async function loadUserData() {
+
   if (!currentUser) return;
 
   try {
+
     const { data } = await sb
       .from('children')
       .select('*')
-      .eq('user_id', currentUser.id)
-      .order('created_at', {
-        ascending: false
-      })
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'created_at',
+        {
+          ascending: false
+        }
+      )
       .limit(1);
 
-    if (data && data.length > 0) {
+    if (
+      data &&
+      data.length > 0
+    ) {
+
       currentChild = data[0];
 
-      const { data: results } = await sb
+      const {
+        data: results
+      } = await sb
         .from('sensory_results')
         .select('*')
-        .eq('child_id', currentChild.id)
-        .order('created_at', {
-          ascending: false
-        })
+        .eq(
+          'child_id',
+          currentChild.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        )
         .limit(1);
 
-      if (results && results.length > 0) {
-        scores = results[0].scores || {};
+      if (
+        results &&
+        results.length > 0
+      ) {
+
+        scores =
+          results[0].scores || {};
       }
     }
 
-    const { data: profile } = await sb
+    const {
+      data: profile
+    } = await sb
       .from('profiles')
       .select('is_premium')
-      .eq('id', currentUser.id)
+      .eq(
+        'id',
+        currentUser.id
+      )
       .single();
 
     if (profile) {
-      isPremium = profile.is_premium || false;
+
+      isPremium =
+        profile.is_premium || false;
     }
 
   } catch (e) {
-    console.log('Load data error:', e);
+
+    console.log(
+      'Load data error:',
+      e
+    );
   }
 }
 
@@ -249,18 +367,25 @@ async function loadUserData() {
 // ═══════════════════════════════════════════
 // SAVE CHILD
 // ═══════════════════════════════════════════
-async function saveChild(name, age) {
-  const { data, error } = await sb
-    .from('children')
-    .upsert({
-      user_id: currentUser.id,
-      name,
-      age_range: age
-    })
-    .select()
-    .single();
+async function saveChild(
+  name,
+  age
+) {
+
+  const { data, error } =
+    await sb
+      .from('children')
+      .upsert({
+        user_id:
+          currentUser.id,
+        name,
+        age_range: age
+      })
+      .select()
+      .single();
 
   if (!error && data) {
+
     currentChild = data;
   }
 }
@@ -269,16 +394,25 @@ async function saveChild(name, age) {
 // ═══════════════════════════════════════════
 // SAVE RESULTS
 // ═══════════════════════════════════════════
-async function saveResults(scrs) {
+async function saveResults(
+  scrs
+) {
+
   scores = scrs;
 
   await sb
     .from('sensory_results')
     .insert({
-      child_id: currentChild.id,
-      user_id: currentUser.id,
+      child_id:
+        currentChild.id,
+
+      user_id:
+        currentUser.id,
+
       scores: scrs,
-      created_at: new Date().toISOString()
+
+      created_at:
+        new Date().toISOString()
     });
 }
 
@@ -287,39 +421,99 @@ async function saveResults(scrs) {
 // UTILS
 // ═══════════════════════════════════════════
 function openLynk() {
-  window.open(LYNK_URL, '_blank');
+
+  window.open(
+    LYNK_URL,
+    '_blank'
+  );
 }
 
 function showErr(msg) {
+
+  console.log('ERROR:', msg);
+
   const el =
-    document.getElementById('login-err');
+    document.getElementById(
+      'login-err'
+    );
+
+  if (!el) {
+    alert(msg);
+    return;
+  }
 
   el.textContent = msg;
-  el.style.display = 'block';
+
+  el.style.display =
+    'block';
 
   setTimeout(() => {
-    el.style.display = 'none';
+
+    el.style.display =
+      'none';
+
   }, 4000);
 }
 
 function showToast(msg) {
+
   const t =
-    document.getElementById('toast');
+    document.getElementById(
+      'toast'
+    );
+
+  if (!t) return;
 
   t.textContent = msg;
-  t.classList.add('show');
+
+  t.classList.add(
+    'show'
+  );
 
   setTimeout(() => {
-    t.classList.remove('show');
+
+    t.classList.remove(
+      'show'
+    );
+
   }, 3000);
 }
 
 
 // ═══════════════════════════════════════════
-// INIT
+// FORCE BUTTON CHECK
 // ═══════════════════════════════════════════
 document.addEventListener(
   'DOMContentLoaded',
-  initApp
+  () => {
+
+    console.log(
+      'DOM loaded'
+    );
+
+    initApp();
+
+    const gbtn =
+      document.getElementById(
+        'google-btn'
+      );
+
+    if (gbtn) {
+
+      gbtn.addEventListener(
+        'click',
+        doGoogleLogin
+      );
+
+      console.log(
+        'Google button connected'
+      );
+
+    } else {
+
+      console.log(
+        'google-btn NOT FOUND'
+      );
+    }
+  }
 );
-```
