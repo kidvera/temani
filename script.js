@@ -1,3 +1,4 @@
+```js
 // ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
@@ -12,23 +13,20 @@ const LYNK_URL =
 
 
 // ═══════════════════════════════════════════
-// CHECK SUPABASE
-// ═══════════════════════════════════════════
-if (!window.supabase) {
-  alert(
-    'Supabase gagal dimuat. Pastikan CDN supabase sudah ada di HTML.'
-  );
-}
-
-
-// ═══════════════════════════════════════════
 // SUPABASE INIT
 // ═══════════════════════════════════════════
 const { createClient } = supabase;
 
 const sb = createClient(
   SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
 );
 
 
@@ -49,33 +47,24 @@ let isPremium = false;
 // ═══════════════════════════════════════════
 async function doGoogleLogin() {
 
-  console.log('Google login clicked');
+  const { data, error } =
+    await sb.auth.signInWithOAuth({
 
-  try {
+      provider: 'google',
 
-    const { data, error } =
-      await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo:
-            'https://temani-cqctsekqe-kidveras-projects.vercel.app/'
-        }
-      });
+      options: {
 
-    console.log('OAuth result:', data);
+        redirectTo:
+          'https://temani-cqctsekqe-kidveras-projects.vercel.app'
 
-    if (error) {
-      console.log('OAuth error:', error);
-      alert(error.message);
-    }
+      }
+    });
 
-  } catch (err) {
+  if (error) {
 
-    console.log('Google login crash:', err);
+    console.log(error);
 
-    alert(
-      'Terjadi error saat login Google'
-    );
+    showErr(error.message);
   }
 }
 
@@ -85,56 +74,58 @@ async function doGoogleLogin() {
 // ═══════════════════════════════════════════
 async function doLogin() {
 
-  console.log('Login email clicked');
-
   const email = document
     .getElementById('login-email')
-    ?.value.trim();
+    .value
+    .trim();
 
-  const pass =
-    document.getElementById('login-pass')
-    ?.value;
+  const pass = document
+    .getElementById('login-pass')
+    .value;
 
   if (!email || !pass) {
+
     showErr(
       'Isi email dan kata sandi dulu ya'
     );
+
     return;
   }
 
   const loginBtn =
-    document.getElementById('login-btn');
+    document.getElementById(
+      'login-btn'
+    );
 
-  if (loginBtn) {
-    loginBtn.textContent =
-      'Memproses...';
+  loginBtn.textContent =
+    'Memproses...';
 
-    loginBtn.disabled = true;
-  }
+  loginBtn.disabled = true;
 
   const { data, error } =
     await sb.auth.signInWithPassword({
+
       email,
       password: pass
+
     });
 
   if (error) {
 
-    console.log(error);
-
     showErr(
+
       error.message ===
       'Invalid login credentials'
+
         ? 'Email atau kata sandi salah'
+
         : error.message
     );
 
-    if (loginBtn) {
-      loginBtn.textContent =
-        'Masuk →';
+    loginBtn.textContent =
+      'Masuk →';
 
-      loginBtn.disabled = false;
-    }
+    loginBtn.disabled = false;
 
     return;
   }
@@ -152,58 +143,59 @@ async function doLogin() {
 // ═══════════════════════════════════════════
 async function doRegister() {
 
-  console.log('Register clicked');
-
   const email = document
     .getElementById('login-email')
-    ?.value.trim();
+    .value
+    .trim();
 
-  const pass =
-    document.getElementById('login-pass')
-    ?.value;
+  const pass = document
+    .getElementById('login-pass')
+    .value;
 
   if (!email || !pass) {
+
     showErr(
       'Isi email dan kata sandi dulu ya'
     );
+
     return;
   }
 
   if (pass.length < 6) {
+
     showErr(
       'Kata sandi minimal 6 karakter'
     );
+
     return;
   }
 
   const loginBtn =
-    document.getElementById('login-btn');
+    document.getElementById(
+      'login-btn'
+    );
 
-  if (loginBtn) {
-    loginBtn.textContent =
-      'Mendaftarkan...';
+  loginBtn.textContent =
+    'Mendaftarkan...';
 
-    loginBtn.disabled = true;
-  }
+  loginBtn.disabled = true;
 
   const { data, error } =
     await sb.auth.signUp({
+
       email,
       password: pass
+
     });
 
   if (error) {
 
-    console.log(error);
-
     showErr(error.message);
 
-    if (loginBtn) {
-      loginBtn.textContent =
-        'Masuk →';
+    loginBtn.textContent =
+      'Masuk →';
 
-      loginBtn.disabled = false;
-    }
+    loginBtn.disabled = false;
 
     return;
   }
@@ -228,15 +220,51 @@ async function doLogout() {
   await sb.auth.signOut();
 
   currentUser = null;
+
   currentChild = null;
+
   scores = {};
 
   document
     .getElementById('bnav')
-    ?.classList.remove('show');
+    .classList.remove('show');
 
   goScreen('s-login');
 }
+
+
+// ═══════════════════════════════════════════
+// AUTH LISTENER
+// ═══════════════════════════════════════════
+sb.auth.onAuthStateChange(
+  async (event, session) => {
+
+    console.log(
+      'AUTH EVENT:',
+      event
+    );
+
+    console.log(
+      'SESSION:',
+      session
+    );
+
+    if (session?.user) {
+
+      currentUser = session.user;
+
+      await loadUserData();
+
+      showApp();
+
+    } else {
+
+      currentUser = null;
+
+      goScreen('s-login');
+    }
+  }
+);
 
 
 // ═══════════════════════════════════════════
@@ -244,17 +272,18 @@ async function doLogout() {
 // ═══════════════════════════════════════════
 async function initApp() {
 
-  console.log('App init');
-
   try {
 
     const {
       data: { session }
     } = await sb.auth.getSession();
 
-    console.log('Session:', session);
+    console.log(
+      'INIT SESSION:',
+      session
+    );
 
-    if (session) {
+    if (session?.user) {
 
       currentUser = session.user;
 
@@ -270,7 +299,7 @@ async function initApp() {
   } catch (err) {
 
     console.log(
-      'Init error:',
+      'INIT ERROR:',
       err
     );
 
@@ -372,17 +401,23 @@ async function saveChild(
   age
 ) {
 
-  const { data, error } =
-    await sb
-      .from('children')
-      .upsert({
-        user_id:
-          currentUser.id,
-        name,
-        age_range: age
-      })
-      .select()
-      .single();
+  const {
+    data,
+    error
+  } = await sb
+    .from('children')
+    .upsert({
+
+      user_id:
+        currentUser.id,
+
+      name,
+
+      age_range: age
+
+    })
+    .select()
+    .single();
 
   if (!error && data) {
 
@@ -403,6 +438,7 @@ async function saveResults(
   await sb
     .from('sensory_results')
     .insert({
+
       child_id:
         currentChild.id,
 
@@ -413,6 +449,7 @@ async function saveResults(
 
       created_at:
         new Date().toISOString()
+
     });
 }
 
@@ -430,27 +467,18 @@ function openLynk() {
 
 function showErr(msg) {
 
-  console.log('ERROR:', msg);
-
   const el =
     document.getElementById(
       'login-err'
     );
 
-  if (!el) {
-    alert(msg);
-    return;
-  }
-
   el.textContent = msg;
 
-  el.style.display =
-    'block';
+  el.style.display = 'block';
 
   setTimeout(() => {
 
-    el.style.display =
-      'none';
+    el.style.display = 'none';
 
   }, 4000);
 }
@@ -462,58 +490,26 @@ function showToast(msg) {
       'toast'
     );
 
-  if (!t) return;
-
   t.textContent = msg;
 
-  t.classList.add(
-    'show'
-  );
+  t.classList.add('show');
 
   setTimeout(() => {
 
-    t.classList.remove(
-      'show'
-    );
+    t.classList.remove('show');
 
   }, 3000);
 }
 
 
 // ═══════════════════════════════════════════
-// FORCE BUTTON CHECK
+// INIT
 // ═══════════════════════════════════════════
 document.addEventListener(
   'DOMContentLoaded',
   () => {
 
-    console.log(
-      'DOM loaded'
-    );
-
     initApp();
-
-    const gbtn =
-      document.getElementById(
-        'google-btn'
-      );
-
-    if (gbtn) {
-
-      gbtn.addEventListener(
-        'click',
-        doGoogleLogin
-      );
-
-      console.log(
-        'Google button connected'
-      );
-
-    } else {
-
-      console.log(
-        'google-btn NOT FOUND'
-      );
-    }
   }
 );
+```
