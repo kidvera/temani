@@ -1,515 +1,114 @@
-```js
-// ═══════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════
-const SUPABASE_URL =
-  'https://spflyyqvawiiuazchyht.supabase.co';
-
-const SUPABASE_ANON_KEY =
-  'sb_publishable__4QG6YPTKjHGOUaNJSNdYg_7aI3UC8-';
-
-const LYNK_URL =
-  'https://lynk.id/r4hm4wati/18d2eg4nl2gy/checkout';
-
-
-// ═══════════════════════════════════════════
-// SUPABASE INIT
-// ═══════════════════════════════════════════
-const { createClient } = supabase;
-
-const sb = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
-);
-
-
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let currentUser = null;
-let currentChild = null;
-let selectedAge = null;
-let answers = [];
-let currentQ = 0;
-let scores = {};
-let isPremium = false;
-
-
-// ═══════════════════════════════════════════
-// GOOGLE LOGIN
-// ═══════════════════════════════════════════
-async function doGoogleLogin() {
-
-  const { data, error } =
-    await sb.auth.signInWithOAuth({
-
-      provider: 'google',
-
-      options: {
-
-        redirectTo:
-          'https://temani-cqctsekqe-kidveras-projects.vercel.app'
-
-      }
-    });
-
-  if (error) {
-
-    console.log(error);
-
-    showErr(error.message);
-  }
-}
-
-
-// ═══════════════════════════════════════════
-// LOGIN EMAIL
-// ═══════════════════════════════════════════
-async function doLogin() {
-
-  const email = document
-    .getElementById('login-email')
-    .value
-    .trim();
-
-  const pass = document
-    .getElementById('login-pass')
-    .value;
-
-  if (!email || !pass) {
-
-    showErr(
-      'Isi email dan kata sandi dulu ya'
-    );
-
-    return;
-  }
-
-  const loginBtn =
-    document.getElementById(
-      'login-btn'
-    );
-
-  loginBtn.textContent =
-    'Memproses...';
-
-  loginBtn.disabled = true;
-
-  const { data, error } =
-    await sb.auth.signInWithPassword({
-
-      email,
-      password: pass
-
-    });
-
-  if (error) {
-
-    showErr(
-
-      error.message ===
-      'Invalid login credentials'
-
-        ? 'Email atau kata sandi salah'
-
-        : error.message
-    );
-
-    loginBtn.textContent =
-      'Masuk →';
-
-    loginBtn.disabled = false;
-
-    return;
-  }
-
-  currentUser = data.user;
-
-  await loadUserData();
-
-  showApp();
-}
-
-
-// ═══════════════════════════════════════════
-// REGISTER
-// ═══════════════════════════════════════════
-async function doRegister() {
-
-  const email = document
-    .getElementById('login-email')
-    .value
-    .trim();
-
-  const pass = document
-    .getElementById('login-pass')
-    .value;
-
-  if (!email || !pass) {
-
-    showErr(
-      'Isi email dan kata sandi dulu ya'
-    );
-
-    return;
-  }
-
-  if (pass.length < 6) {
-
-    showErr(
-      'Kata sandi minimal 6 karakter'
-    );
-
-    return;
-  }
-
-  const loginBtn =
-    document.getElementById(
-      'login-btn'
-    );
-
-  loginBtn.textContent =
-    'Mendaftarkan...';
-
-  loginBtn.disabled = true;
-
-  const { data, error } =
-    await sb.auth.signUp({
-
-      email,
-      password: pass
-
-    });
-
-  if (error) {
-
-    showErr(error.message);
-
-    loginBtn.textContent =
-      'Masuk →';
-
-    loginBtn.disabled = false;
-
-    return;
-  }
-
-  currentUser = data.user;
-
-  showToast(
-    'Akun berhasil dibuat'
-  );
-
-  await loadUserData();
-
-  showApp();
-}
-
-
-// ═══════════════════════════════════════════
-// LOGOUT
-// ═══════════════════════════════════════════
-async function doLogout() {
-
-  await sb.auth.signOut();
-
-  currentUser = null;
-
-  currentChild = null;
-
-  scores = {};
-
-  document
-    .getElementById('bnav')
-    .classList.remove('show');
-
-  goScreen('s-login');
-}
-
-
-// ═══════════════════════════════════════════
-// AUTH LISTENER
-// ═══════════════════════════════════════════
-sb.auth.onAuthStateChange(
-  async (event, session) => {
-
-    console.log(
-      'AUTH EVENT:',
-      event
-    );
-
-    console.log(
-      'SESSION:',
-      session
-    );
-
-    if (session?.user) {
-
-      currentUser = session.user;
-
-      await loadUserData();
-
-      showApp();
-
-    } else {
-
-      currentUser = null;
-
-      goScreen('s-login');
-    }
-  }
-);
-
-
-// ═══════════════════════════════════════════
-// CHECK SESSION
-// ═══════════════════════════════════════════
-async function initApp() {
-
-  try {
-
-    const {
-      data: { session }
-    } = await sb.auth.getSession();
-
-    console.log(
-      'INIT SESSION:',
-      session
-    );
-
-    if (session?.user) {
-
-      currentUser = session.user;
-
-      await loadUserData();
-
-      showApp();
-
-    } else {
-
-      goScreen('s-login');
-    }
-
-  } catch (err) {
-
-    console.log(
-      'INIT ERROR:',
-      err
-    );
-
-    goScreen('s-login');
-  }
-}
-
-
-// ═══════════════════════════════════════════
-// LOAD USER DATA
-// ═══════════════════════════════════════════
-async function loadUserData() {
-
-  if (!currentUser) return;
-
-  try {
-
-    const { data } = await sb
-      .from('children')
-      .select('*')
-      .eq(
-        'user_id',
-        currentUser.id
-      )
-      .order(
-        'created_at',
-        {
-          ascending: false
-        }
-      )
-      .limit(1);
-
-    if (
-      data &&
-      data.length > 0
-    ) {
-
-      currentChild = data[0];
-
-      const {
-        data: results
-      } = await sb
-        .from('sensory_results')
-        .select('*')
-        .eq(
-          'child_id',
-          currentChild.id
-        )
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        )
-        .limit(1);
-
-      if (
-        results &&
-        results.length > 0
-      ) {
-
-        scores =
-          results[0].scores || {};
-      }
-    }
-
-    const {
-      data: profile
-    } = await sb
-      .from('profiles')
-      .select('is_premium')
-      .eq(
-        'id',
-        currentUser.id
-      )
-      .single();
-
-    if (profile) {
-
-      isPremium =
-        profile.is_premium || false;
-    }
-
-  } catch (e) {
-
-    console.log(
-      'Load data error:',
-      e
-    );
-  }
-}
-
-
-// ═══════════════════════════════════════════
-// SAVE CHILD
-// ═══════════════════════════════════════════
-async function saveChild(
-  name,
-  age
-) {
-
-  const {
-    data,
-    error
-  } = await sb
-    .from('children')
-    .upsert({
-
-      user_id:
-        currentUser.id,
-
-      name,
-
-      age_range: age
-
-    })
-    .select()
-    .single();
-
-  if (!error && data) {
-
-    currentChild = data;
-  }
-}
-
-
-// ═══════════════════════════════════════════
-// SAVE RESULTS
-// ═══════════════════════════════════════════
-async function saveResults(
-  scrs
-) {
-
-  scores = scrs;
-
-  await sb
-    .from('sensory_results')
-    .insert({
-
-      child_id:
-        currentChild.id,
-
-      user_id:
-        currentUser.id,
-
-      scores: scrs,
-
-      created_at:
-        new Date().toISOString()
-
-    });
-}
-
-
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function openLynk() {
-
-  window.open(
-    LYNK_URL,
-    '_blank'
-  );
-}
-
-function showErr(msg) {
-
-  const el =
-    document.getElementById(
-      'login-err'
-    );
-
-  el.textContent = msg;
-
-  el.style.display = 'block';
-
-  setTimeout(() => {
-
-    el.style.display = 'none';
-
-  }, 4000);
-}
-
-function showToast(msg) {
-
-  const t =
-    document.getElementById(
-      'toast'
-    );
-
-  t.textContent = msg;
-
-  t.classList.add('show');
-
-  setTimeout(() => {
-
-    t.classList.remove('show');
-
-  }, 3000);
-}
-
-
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
 document.addEventListener(
   'DOMContentLoaded',
-  () => {
+  async () => {
 
-    initApp();
+    console.log('APP START');
+
+    // cek session setelah redirect google
+    const {
+      data: { session },
+      error
+    } = await sb.auth.getSession();
+
+    console.log('SESSION:', session);
+    console.log('ERROR:', error);
+
+    if (session?.user) {
+
+      currentUser = session.user;
+
+      console.log(
+        'LOGIN BERHASIL:',
+        currentUser.email
+      );
+
+      await loadUserData();
+
+      showApp();
+
+    } else {
+
+      console.log(
+        'BELUM LOGIN'
+      );
+
+      goScreen('s-login');
+    }
+
+    // force tombol google aktif
+    const googleBtn =
+      document.getElementById(
+        'google-login-btn'
+      );
+
+    if (googleBtn) {
+
+      googleBtn.style.pointerEvents =
+        'auto';
+
+      googleBtn.style.opacity = '1';
+
+      googleBtn.disabled = false;
+
+      googleBtn.addEventListener(
+        'click',
+        async (e) => {
+
+          e.preventDefault();
+
+          console.log(
+            'GOOGLE BUTTON CLICKED'
+          );
+
+          try {
+
+            const {
+              data,
+              error
+            } =
+              await sb.auth.signInWithOAuth({
+
+                provider: 'google',
+
+                options: {
+
+                  redirectTo:
+                    'https://temani-cqctsekqe-kidveras-projects.vercel.app'
+
+                }
+              });
+
+            console.log(
+              'OAUTH DATA:',
+              data
+            );
+
+            console.log(
+              'OAUTH ERROR:',
+              error
+            );
+
+            if (error) {
+
+              showErr(error.message);
+            }
+
+          } catch (err) {
+
+            console.log(
+              'GOOGLE LOGIN ERROR:',
+              err
+            );
+
+            showErr(
+              'Google login gagal'
+            );
+          }
+        }
+      );
+    }
   }
 );
-```
